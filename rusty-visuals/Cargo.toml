@@ -8,3 +8,21 @@ edition = "2018"
 
 [dependencies]
 nannou = "0.14"
+rand = "0.7.3"
+itertools = "0.9.0"
+
+[[bin]]
+name="waves"
+path="src/waves.rs"
+
+[[bin]]
+name="random_walk"
+path="src/randomwalk.rs"
+
+[[bin]]
+name="two_dim_perlin"
+path="src/two-dimensional-perlin.rs"
+
+[[bin]]
+name="vectors"
+path="src/vectors/main.rs"
