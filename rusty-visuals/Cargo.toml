@@ -26,3 +26,7 @@ path="src/two-dimensional-perlin.rs"
 [[bin]]
 name="vectors"
 path="src/vectors/main.rs"
+
+[[bin]]
+name="ecosystem"
+path="src/ecosystem/main.rs"
