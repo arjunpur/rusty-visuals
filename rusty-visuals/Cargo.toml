@@ -28,5 +28,9 @@ name="vectors"
 path="src/vectors/main.rs"
 
 [[bin]]
+name="up_down_car"
+path="src/vectors/up_down_car.rs"
+
+[[bin]]
 name="ecosystem"
 path="src/ecosystem/main.rs"

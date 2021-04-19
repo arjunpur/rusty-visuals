@@ -1,10 +1,10 @@
 use nannou::prelude::*;
 
 pub struct Mover {
-    position: geom::Point2,
+    pub position: geom::Point2,
     velocity: Vector2,
-    acceleration: Vector2,
     top_speed: f32,
+    min_speed: f32,
 }
 
 impl Mover {
@@ -13,25 +13,26 @@ impl Mover {
         let rand_y = random_range(rect.top(), rect.bottom());
         let position = pt2(rand_x, rand_y);
         let velocity = vec2(0.0, 0.0);
-        let acceleration = vec2(0.01, 0.01);
         let top_speed = 2.0;
+        let min_speed = -2.0;
         Mover {
             position,
             velocity,
-            acceleration,
             top_speed,
+            min_speed,
         }
     }
 
-    pub fn update(&mut self, rect: geom::Rect) {
-        self.velocity += self.acceleration;
+    pub fn update(&mut self, rect: geom::Rect, acceleration: Vector2) {
+        self.velocity += acceleration;
         self.velocity = vec2(
-            self.velocity.x.min(self.top_speed),
-            self.velocity.y.min(self.top_speed),
+            self.velocity.x.min(self.top_speed).max(self.min_speed),
+            self.velocity.y.min(self.top_speed).max(self.min_speed),
         );
         self.position += self.velocity;
         self.check_edges(rect);
     }
+
     fn check_edges(&mut self, rect: geom::Rect) {
         if self.position.x > rect.right() {
             self.position.x = rect.left();
