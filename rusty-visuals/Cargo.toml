@@ -32,5 +32,9 @@ name="up_down_car"
 path="src/vectors/up_down_car.rs"
 
 [[bin]]
+name="accelerate_towards_mouse"
+path="src/vectors/accelerate_towards_mouse.rs"
+
+[[bin]]
 name="ecosystem"
 path="src/ecosystem/main.rs"
