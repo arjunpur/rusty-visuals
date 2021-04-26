@@ -27,7 +27,9 @@ fn update(app: &App, m: &mut Model, _update: Update) {
     let distance = m.attractor.position - m.mover.position;
     let vector = distance.normalize();
     let mag = distance.magnitude();
-    let gravity_mag = (GRAVITATIONAL_CONSTANT * m.mover.mass * m.attractor.mass) / (mag * mag);
+    let mag_clamped = clamp_min(mag, 0.1);
+    let gravity_mag =
+        (GRAVITATIONAL_CONSTANT * m.mover.mass * m.attractor.mass) / (mag_clamped * mag_clamped);
     let gravity = vector * gravity_mag;
     m.mover.apply_force(gravity);
     m.mover.update(app.window_rect());
