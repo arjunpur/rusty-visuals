@@ -36,5 +36,13 @@ name="helium_balloon"
 path="src/nature_of_code/forces/helium_balloon.rs"
 
 [[bin]]
+name="bouncing_ball"
+path="src/nature_of_code/forces/bouncing_ball.rs"
+
+[[bin]]
+name="gravity"
+path="src/nature_of_code/forces/gravity.rs"
+
+[[bin]]
 name="ecosystem"
 path="src/ecosystem/main.rs"

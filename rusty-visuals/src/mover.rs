@@ -1,5 +1,7 @@
 use nannou::prelude::*;
 
+const FRICTION_CONSTANT: app::DrawScalar = 0.3;
+
 pub struct Mover {
     pub position: geom::Point2,
     velocity: Vector2,
@@ -8,7 +10,7 @@ pub struct Mover {
     // inherent_force is some force that is exerted on the object
     // as a result of the inherent properties of the object.
     // Example: Helium's buoyancy
-    mass: f32,
+    pub mass: f32,
     inherent_force: Vector2,
     current_force: Vector2,
 }
@@ -45,41 +47,38 @@ impl Mover {
         self.current_force += force / self.mass;
     }
 
+    pub fn apply_friction(&mut self) {
+        let opposite_velocity = self.velocity * -1.0;
+        let friction = opposite_velocity.normalize();
+        self.apply_force(friction * FRICTION_CONSTANT);
+    }
+
     pub fn update(&mut self, rect: geom::Rect) {
         self.current_force += self.inherent_force;
-        if self.check_edges(rect) {
-            // Simulate bounce
-            self.current_force *= -5.5;
-        }
         self.velocity += self.current_force;
         self.velocity = vec2(
             self.velocity.x.min(self.top_speed).max(self.min_speed),
             self.velocity.y.min(self.top_speed).max(self.min_speed),
         );
         self.position += self.velocity;
+        self.check_edges(rect);
         self.current_force = self.inherent_force;
     }
 
-    fn check_edges(&mut self, rect: geom::Rect) -> bool {
+    fn check_edges(&mut self, rect: geom::Rect) {
         if self.position.x > rect.right() {
+            self.velocity *= -1.0;
             self.position.x = rect.right();
-            return true;
-        // self.position.x = rect.left();
         } else if self.position.x < rect.left() {
+            self.velocity *= -1.0;
             self.position.x = rect.left();
-            return true;
-        // self.position.x = rect.right();
         } else if self.position.y > rect.top() {
+            self.velocity *= -1.0;
             self.position.y = rect.top();
-            return true;
-        // self.apply_force(self.current_force * -2.0);
-        // self.position.y = rect.bottom();
         } else if self.position.y < rect.bottom() {
+            self.velocity *= -1.0;
             self.position.y = rect.bottom();
-            return true;
-            // self.position.y = rect.top();
         }
-        return false;
     }
 
     pub fn display(&self, draw: &Draw) {

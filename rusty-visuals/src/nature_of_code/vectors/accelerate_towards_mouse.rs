@@ -35,10 +35,8 @@ fn update(app: &App, m: &mut Model, _update: Update) {
         // ownership or copy otherwise.
         let mover = &mut m.movers[i];
         let normalized_vec_to_mouse = (app.mouse.position() - mover.position).normalize();
-        mover.update(
-            app.window_rect(),
-            normalized_vec_to_mouse * SCALE_ACCELERATION_BY,
-        );
+        mover.apply_force(normalized_vec_to_mouse * SCALE_ACCELERATION_BY);
+        mover.update(app.window_rect());
     }
 }
 
