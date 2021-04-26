@@ -4,7 +4,7 @@
 use nannou::geom::{pt2, Point2};
 use nannou::prelude::*;
 
-use rusty_visuals::Mover;
+use rusty_visuals::mover::Mover;
 
 const ACCELERATION_INCREMENT: app::DrawScalar = 0.01;
 

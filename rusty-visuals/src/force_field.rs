@@ -17,7 +17,7 @@ const MAGNITUDE_SMOOTHER: f32 = 100.0;
 // angle and magnitude vary fairly differently.
 const ANGLE_MAGNITUDE_NOISE_OFFSET: f64 = 40000.0;
 // How much we scale the final force vector's magnitude.
-const MAGNITUDE_SCALE: f32 = 40.0;
+const MAGNITUDE_SCALE: f32 = 2.0;
 
 pub struct ForceField {
     rect: Rect<DrawScalar>,
@@ -109,7 +109,7 @@ impl ForceField {
 // The two functions here are used to update the forces on the force
 // field with a noise randomized step. We use a bunch of constants (ex. ANGLE_SMOOTHER) to scale down the inputs so that noise
 // returns closer values, giving a more smoothed out visual experience.
-pub fn populate_force_field(
+fn populate_force_field(
     rect: Rect<DrawScalar>,
     time: DrawScalar,
     force_field: &mut Vec<Vec<Vector2>>,

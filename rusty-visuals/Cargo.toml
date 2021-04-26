@@ -13,27 +13,27 @@ itertools = "0.9.0"
 
 [[bin]]
 name="waves"
-path="src/waves.rs"
+path="src/basics/waves.rs"
 
 [[bin]]
 name="random_walk"
-path="src/randomwalk.rs"
-
-[[bin]]
-name="two_dim_perlin"
-path="src/two-dimensional-perlin.rs"
+path="src/basics/randomwalk.rs"
 
 [[bin]]
 name="vectors"
-path="src/vectors/main.rs"
+path="src/nature_of_code/vectors/main.rs"
 
 [[bin]]
 name="up_down_car"
-path="src/vectors/up_down_car.rs"
+path="src/nature_of_code/vectors/up_down_car.rs"
 
 [[bin]]
 name="accelerate_towards_mouse"
-path="src/vectors/accelerate_towards_mouse.rs"
+path="src/nature_of_code/vectors/accelerate_towards_mouse.rs"
+
+[[bin]]
+name="helium_balloon"
+path="src/nature_of_code/forces/helium_balloon.rs"
 
 [[bin]]
 name="ecosystem"

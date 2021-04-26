@@ -1,7 +1,5 @@
 use nannou::prelude::*;
-use rusty_visuals::Mover;
-
-mod force_field;
+use rusty_visuals::{force_field::ForceField, mover::Mover};
 
 fn main() {
     nannou::app(model).update(update).run();
@@ -9,7 +7,7 @@ fn main() {
 
 struct Model {
     mover: Mover,
-    force_field: force_field::ForceField,
+    force_field: ForceField,
 }
 
 fn model(app: &App) -> Model {
@@ -18,7 +16,7 @@ fn model(app: &App) -> Model {
         .view(view)
         .build()
         .unwrap();
-    let force_field = force_field::ForceField::new(app.window_rect(), app.time);
+    let force_field = ForceField::new(app.window_rect(), app.time);
     let mover = Mover::new(app.window_rect());
     Model { mover, force_field }
 }
@@ -30,7 +28,8 @@ fn update(app: &App, m: &mut Model, _update: Update) {
         .force_field
         .get_acceleration_from_position(m.mover.position);
 
-    m.mover.update(window_rect, acceleration);
+    m.mover.apply_force(acceleration);
+    m.mover.update(window_rect);
 }
 
 fn view(app: &App, m: &Model, frame: Frame) {

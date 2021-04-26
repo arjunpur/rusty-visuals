@@ -3,7 +3,7 @@
 
 use nannou::prelude::*;
 
-use rusty_visuals::Mover;
+use rusty_visuals::mover::Mover;
 
 const SCALE_ACCELERATION_BY: app::DrawScalar = 0.1;
 const NUM_MOVERS: usize = 10;
