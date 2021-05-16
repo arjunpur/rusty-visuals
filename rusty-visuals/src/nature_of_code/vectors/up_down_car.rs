@@ -35,7 +35,8 @@ fn model(app: &App) -> Model {
 }
 
 fn update(app: &App, m: &mut Model, _update: Update) {
-    m.mover.update(app.window_rect(), m.curr_acceleration);
+    m.mover.apply_force(m.curr_acceleration);
+    m.mover.update(app.window_rect());
 }
 
 fn event(_: &App, m: &mut Model, event: WindowEvent) {

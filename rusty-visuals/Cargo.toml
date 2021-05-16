@@ -7,10 +7,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+chrono = "0.4.0"
 nannou = "0.14"
 rand = "0.7.3"
 itertools = "0.9.0"
 
+# Art entry points
+[[bin]]
+name="art_circles"
+path="src/art/circles.rs"
+
+# Basic tests and examples
 [[bin]]
 name="waves"
 path="src/basics/waves.rs"
@@ -19,6 +26,11 @@ path="src/basics/waves.rs"
 name="random_walk"
 path="src/basics/randomwalk.rs"
 
+[[bin]]
+name="ecosystem"
+path="src/ecosystem/main.rs"
+
+# Nature of code entry points
 [[bin]]
 name="vectors"
 path="src/nature_of_code/vectors/main.rs"
@@ -42,7 +54,3 @@ path="src/nature_of_code/forces/bouncing_ball.rs"
 [[bin]]
 name="gravity"
 path="src/nature_of_code/forces/gravity.rs"
-
-[[bin]]
-name="ecosystem"
-path="src/ecosystem/main.rs"
