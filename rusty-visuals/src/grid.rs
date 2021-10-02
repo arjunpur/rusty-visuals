@@ -3,9 +3,9 @@ use nannou::noise::*;
 use nannou::prelude::*;
 use std::collections::vec_deque::*;
 
-pub struct NoiseColoredGrid {}
+pub struct ColoredGrid {}
 
-impl NoiseColoredGrid {
+impl ColoredGrid {
     pub fn draw(draw: &Draw, rect: &Rect, resolution: f32, colorer: &mut dyn Colorer) {
         // This rect is shifted and moved around the grid to help align the rect we're
         // drawing
@@ -48,29 +48,35 @@ impl Colorer for NoiseColorer {
         let current_saturation = self.current_color.saturation;
         let current_value = self.current_color.value;
 
+        // Use noise functions to move the hue, saturation and brigthness around
         let hue_delta = self
             .noise
             .get([x as f64, y as f64, current_hue.to_radians() as f64])
-            / 10.0;
+            / 100.0;
         let saturation_delta = self.noise.get([
             x as f64 + 1000.0,
             y as f64 + 1000.0,
             current_saturation as f64,
-        ]) as f32;
+        ]) as f32
+            / 100.0;
         let brightness_delta =
             self.noise
                 .get([x as f64 + 10000.0, y as f64 + 10000.0, current_value as f64])
-                as f32;
+                as f32
+                / 100.0;
 
         println!(
             "current hue: {}, hue_delta: {}",
             current_hue.to_radians(),
             hue_delta
         );
-        let range_size = self.hue_bound.y - self.hue_bound.x;
-        let new_hue = (((current_hue.to_radians() as f32 + hue_delta as f32) - self.hue_bound.x)
-            % range_size)
-            + self.hue_bound.x;
+
+        // Move the Hue but within a range only
+        // let range_size = self.hue_bound.y - self.hue_bound.x;
+        // let new_hue = (((current_hue.to_radians() as f32 + hue_delta as f32) - self.hue_bound.x)
+        //     % range_size)
+        //     + self.hue_bound.x;
+        let new_hue = current_hue.to_radians() as f32 + hue_delta as f32;
         let new_color = Hsv::new(
             new_hue.to_degrees(),
             current_saturation + saturation_delta,

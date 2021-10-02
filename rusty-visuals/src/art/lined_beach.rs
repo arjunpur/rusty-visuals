@@ -56,7 +56,7 @@ fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect) {
     //     Hsv::new(36.0, 0.53, 0.63),
     //     Hsv::new(30.0, 0.53, 0.63),
     // ]));
-    grid::NoiseColoredGrid::draw(draw, &positioning_rect, GRID_SIDE_LENGTH, &mut colorer);
+    grid::ColoredGrid::draw(draw, &positioning_rect, GRID_SIDE_LENGTH, &mut colorer);
 }
 
 fn draw_water(draw: &Draw, heights: &Heights, rect: Rect) {
