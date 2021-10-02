@@ -17,7 +17,35 @@ itertools = "0.9.0"
 name="art_circles"
 path="src/art/circles.rs"
 
+[[bin]]
+name="intertwined"
+path="src/art/intertwined.rs"
+
+[[bin]]
+name="mouse_shapes"
+path="src/art/mouse_shapes.rs"
+
+[[bin]]
+name="cracked_rectangles"
+path="src/art/cracked_rectangles.rs"
+
+[[bin]]
+name="lined_beach"
+path="src/art/lined_beach.rs"
+
 # Basic tests and examples
+[[bin]]
+name="P_1_0_01"
+path="src/basics/color/P_1_0_01.rs"
+
+[[bin]]
+name="P_1_1_1"
+path="src/basics/color/P_1_1_1.rs"
+
+[[bin]]
+name="P_1_1_2"
+path="src/basics/color/P_1_1_2.rs"
+
 [[bin]]
 name="waves"
 path="src/basics/waves.rs"
