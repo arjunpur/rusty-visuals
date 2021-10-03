@@ -47,6 +47,10 @@ name="P_1_1_2"
 path="src/basics/color/P_1_1_2.rs"
 
 [[bin]]
+name="color_interpolation"
+path="src/basics/color/color_interpolation.rs"
+
+[[bin]]
 name="waves"
 path="src/basics/waves.rs"
 
