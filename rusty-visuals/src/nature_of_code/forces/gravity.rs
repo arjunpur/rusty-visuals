@@ -1,4 +1,4 @@
-use nannou::geom::{Point2, Vector2};
+
 use nannou::prelude::*;
 use rusty_visuals::mover::Mover;
 

@@ -11,7 +11,7 @@ pub fn random_color_in_hue_range(
     hue_max: color::DefaultScalar,
 ) -> Hsl {
     let hue = map_range(random_range(0.0, 1.0), 0.0, 1.0, hue_min, hue_max);
-    return Hsl::new(hue, DEFAULT_SATURATION, DEFAULT_LIGHTNESS);
+    Hsl::new(hue, DEFAULT_SATURATION, DEFAULT_LIGHTNESS)
 }
 
 pub fn random_color_in_range(
@@ -28,5 +28,5 @@ pub fn random_color_in_range(
         saturation_min,
         saturation_max,
     );
-    return Hsl::new(hue, saturation, DEFAULT_LIGHTNESS);
+    Hsl::new(hue, saturation, DEFAULT_LIGHTNESS)
 }

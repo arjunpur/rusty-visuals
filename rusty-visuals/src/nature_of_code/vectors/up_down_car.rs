@@ -1,7 +1,7 @@
 // Exercise 1: Create a simulation of a car (or runner) that accelerates when you press the up key and brakes when you press the down key.
 // Exercise 2: Accelerate an object towards the mouse
 
-use nannou::geom::{pt2, Point2};
+
 use nannou::prelude::*;
 
 use rusty_visuals::mover::Mover;

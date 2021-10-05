@@ -1,4 +1,4 @@
-use nannou::color::{self, Hsl};
+
 use nannou::draw::primitive::polygon::*;
 use nannou::prelude::*;
 use rand::{thread_rng, Rng};
@@ -75,7 +75,7 @@ fn view(app: &App, m: &Model, frame: Frame) {
 
 fn jitter(tile_size: f32) -> f32 {
     let mut rng = thread_rng();
-    return JITTER_FACTOR * tile_size * rng.gen_range(-1.0, 1.0);
+    JITTER_FACTOR * tile_size * rng.gen_range(-1.0, 1.0)
 }
 
 fn enhance_with_color(grid_x: u32, grid_y: u32, drawing: DrawingPolygon) {

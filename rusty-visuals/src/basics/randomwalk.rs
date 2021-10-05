@@ -30,10 +30,10 @@ fn update(app: &App, m: &mut Model, _update: Update) {
     let last = m.positions.last().unwrap();
     let mut velocity = vec2(x, y) * 8.0;
     if (last.x > rect.right()) || (last.x < rect.left()) {
-        velocity.x = velocity.x * -1.0;
+        velocity.x *= -1.0;
     }
     if (last.y > rect.top()) || (last.y < rect.bottom()) {
-        velocity.y = velocity.y * -1.0;
+        velocity.y *= -1.0;
     }
 
     m.positions.push(*last + velocity);

@@ -1,6 +1,6 @@
 use nannou::prelude::*;
 use rusty_visuals::*;
-use std::collections::vec_deque::*;
+
 
 const GRID_SIDE_LENGTH: f32 = 5.0;
 
@@ -26,7 +26,7 @@ fn model(app: &App) -> Model {
     Model {}
 }
 
-fn view(app: &App, m: &Model, frame: Frame) {
+fn view(app: &App, _m: &Model, frame: Frame) {
     let draw = app.draw();
     let rect = app.window_rect();
 
@@ -46,7 +46,7 @@ fn view(app: &App, m: &Model, frame: Frame) {
 }
 
 fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect) {
-    let yellow = Hsv::new(36.0, 0.53, 0.63);
+    let _yellow = Hsv::new(36.0, 0.53, 0.63);
     let positioning_rect = Rect::from_wh(vec2(rect.w(), heights.sand_height))
         .align_left_of(rect)
         .align_bottom_of(rect);
@@ -85,7 +85,7 @@ fn draw_sky(draw: &Draw, heights: &Heights, rect: Rect) {
         .color(SKYBLUE);
 }
 
-fn event(app: &App, m: &mut Model, event: WindowEvent) {
+fn event(app: &App, _m: &mut Model, event: WindowEvent) {
     match event {
         KeyPressed(Key::P) => {
             println!("printing out because P was pressed");

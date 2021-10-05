@@ -1,7 +1,7 @@
 use nannou::color::*;
 use nannou::noise::*;
 use nannou::prelude::*;
-use nannou::rand::*;
+
 use std::collections::vec_deque::*;
 
 pub struct ColoredGrid {}
@@ -72,7 +72,7 @@ pub struct NoiseColorer {
 }
 
 impl Colorer for NoiseColorer {
-    fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
+    fn color(&mut self, i_x: i32, i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
         // Assume that base_color's Hue is not None
         let current_hue = self.current_color.get_hue().unwrap();
         // .unwrap_or(self.base_color.get_hue().unwrap());
@@ -116,7 +116,7 @@ impl Colorer for NoiseColorer {
             current_value + brightness_delta,
         );
         self.current_color = new_color;
-        return new_color;
+        new_color
     }
 }
 
@@ -127,12 +127,12 @@ impl NoiseColorer {
         if current_hue < hue_bound.x || current_hue > hue_bound.y {
             panic!("Hue of base color out of provided bounds");
         }
-        return NoiseColorer {
+        NoiseColorer {
             base_color,
             current_color: base_color,
             hue_bound,
             noise,
-        };
+        }
     }
 }
 
@@ -141,16 +141,16 @@ pub struct AlternatingColorer {
 }
 
 impl Colorer for AlternatingColorer {
-    fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
+    fn color(&mut self, _i_x: i32, _i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
         let color = self.colors.pop_front().unwrap();
         self.colors.push_back(color);
-        return color;
+        color
     }
 }
 
 impl AlternatingColorer {
     pub fn new(colors: VecDeque<Hsv>) -> Self {
-        return AlternatingColorer { colors };
+        AlternatingColorer { colors }
     }
 }
 
@@ -162,29 +162,29 @@ pub struct InterpolatedColorer {
 impl Colorer for InterpolatedColorer {
     fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
         let color_for_idx = map_range(i_x, 0, t_x, 0.0, 1.0);
-        return self.get_gradient(i_x, i_y, t_x, t_y).get(color_for_idx);
+        self.get_gradient(i_x, i_y, t_x, t_y).get(color_for_idx)
     }
 }
 
 impl InterpolatedColorer {
     pub fn new(color_range: (Hsv, Hsv)) -> Self {
         let base_gradient = Gradient::new(vec![color_range.0, color_range.1]);
-        return InterpolatedColorer {
+        InterpolatedColorer {
             color_range,
             base_gradient,
-        };
+        }
     }
 
     // TODO: This can be precomputed if we know the number of tiles in the grid when the
     // interpolated colorer is constructed.
     // TODO:
-    fn get_gradient(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Gradient<Hsv> {
+    fn get_gradient(&mut self, _i_x: i32, i_y: i32, _t_x: i32, t_y: i32) -> Gradient<Hsv> {
         let y_gradient_start_idx = map_range(i_y, 0, t_y, 0.0, 1.0);
         let y_gradient_start = self.base_gradient.get(y_gradient_start_idx);
 
         // 30.0 degree step for now. Parametrize this
         let y_gradient_end = y_gradient_start + Hsv::new(30.0, 0.0, 0.0);
-        let gradient = Gradient::new(vec![y_gradient_start, y_gradient_end]);
-        return gradient;
+        
+        Gradient::new(vec![y_gradient_start, y_gradient_end])
     }
 }

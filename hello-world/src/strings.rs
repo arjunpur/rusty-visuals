@@ -8,8 +8,8 @@ pub fn basics() {
 
     let _b = "arjun".to_string();
     let _c = "puri";
-    let _d = _b + &_c;
+    let _d = _b + _c;
 
-    let final_str = format!("{}", _d);
+    let final_str = _d;
     println!("{}", final_str);
 }

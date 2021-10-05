@@ -1,7 +1,7 @@
 use nannou::color::*;
-use nannou::draw::primitive::polygon::*;
+
 use nannou::prelude::*;
-use rand::{thread_rng, Rng};
+
 use rusty_visuals::*;
 
 fn main() {
@@ -20,7 +20,7 @@ fn model(app: &App) -> Model {
     Model {}
 }
 
-fn view(app: &App, m: &Model, frame: Frame) {
+fn view(app: &App, _m: &Model, frame: Frame) {
     let draw = app.draw();
     let rect = app.window_rect();
 

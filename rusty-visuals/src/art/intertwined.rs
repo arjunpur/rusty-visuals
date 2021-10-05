@@ -108,7 +108,7 @@ fn get_next_position(rect: Rect<app::DrawScalar>, current_position: &Vector2) ->
         vec2(0.0, -2.0),
         vec2(-2.0, 0.0),
     ];
-    return get_next_position_with_directions(rect, current_position, directions);
+    get_next_position_with_directions(rect, current_position, directions)
 }
 
 fn get_next_position_with_directions(
@@ -125,7 +125,7 @@ fn get_next_position_with_directions(
     if future_position.y < rect.bottom() || future_position.y > rect.top() {
         adjusted_direction.y *= -1.0;
     }
-    return *current_position + (adjusted_direction * 5.0);
+    *current_position + (adjusted_direction * 5.0)
 }
 
 fn view(app: &App, m: &Model, frame: Frame) {

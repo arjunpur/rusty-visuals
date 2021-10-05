@@ -51,5 +51,5 @@ fn create_wind(time: DrawScalar, xy: Point2) -> Vector2 {
         (xy.y + DIRECTION_MAGNITUDE_OFFSET) as f64,
         time as f64,
     ]);
-    return vec2(direction * magnitude as f32, 0.0);
+    vec2(direction * magnitude as f32, 0.0)
 }

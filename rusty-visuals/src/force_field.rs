@@ -39,7 +39,7 @@ impl ForceField {
         );
         let mut force_field = vec![vec![vec2(0.0, 0.0); num_forces.0]; num_forces.1];
         populate_force_field(rect, time, &mut force_field);
-        return ForceField { rect, force_field };
+        ForceField { rect, force_field }
     }
 
     // To be called by a nannou `update` function. Simply updates the vectors
@@ -79,8 +79,8 @@ impl ForceField {
                 self.force_field.len() as i32,
             ),
         );
-        return self.force_field[scaled_mover_position.y as usize]
-            [scaled_mover_position.x as usize];
+        self.force_field[scaled_mover_position.y as usize]
+            [scaled_mover_position.x as usize]
     }
 
     pub fn display(&self, draw: &Draw, time: DrawScalar) {
@@ -139,5 +139,5 @@ fn create_force_from_noise(time: DrawScalar, x: f32, y: f32) -> Vector2 {
         (y / MAGNITUDE_SMOOTHER) as f64 + ANGLE_MAGNITUDE_NOISE_OFFSET,
         time as f64 / TIME_SMOOTHER,
     ]) as f32;
-    return geom::Vector2::from_angle(angle) * magnitude * MAGNITUDE_SCALE;
+    geom::Vector2::from_angle(angle) * magnitude * MAGNITUDE_SCALE
 }

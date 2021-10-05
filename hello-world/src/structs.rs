@@ -11,7 +11,7 @@ impl Learner {
     }
 
     fn new(who: String, what: String) -> Learner {
-        return Learner { who, what };
+        Learner { who, what }
     }
 }
 
@@ -66,10 +66,10 @@ enum Person {
 impl Person {
     fn say_hi(&self) -> String {
         match self {
-            Person::Cool(name, personality_type, _) => String::from(format!(
+            Person::Cool(name, personality_type, _) => format!(
                 "hi my name is {} and I'm an {:?}",
                 name, personality_type,
-            )),
+            ),
             Person::NotCool(_, _) => String::from("I'm not cool"),
         }
     }

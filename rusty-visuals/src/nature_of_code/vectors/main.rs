@@ -17,13 +17,13 @@ struct Model {
 
 impl Model {
     fn add(&self) -> Vector2 {
-        return self.v1 + self.v2;
+        self.v1 + self.v2
     }
 
     fn magnitudes(&self) -> (f32, f32) {
         let m1 = ((self.v1.x - self.mouse.x).pow(2.0) + (self.v1.y - self.mouse.y).pow(2.0)).sqrt();
         let m2 = ((self.v2.x - self.mouse.x).pow(2.0) + (self.v2.y - self.mouse.y).pow(2.0)).sqrt();
-        return (m1, m2);
+        (m1, m2)
     }
 }
 
