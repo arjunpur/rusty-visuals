@@ -1,5 +1,6 @@
 use nannou::color::*;
 use nannou::noise::*;
+use nannou::prelude::Point2;
 use nannou::prelude::*;
 
 use std::collections::vec_deque::*;
@@ -7,27 +8,29 @@ use std::collections::vec_deque::*;
 pub struct ColoredGrid {}
 
 impl ColoredGrid {
-    // `resolution` is the size of each individual box -- only squares are currently supported
-    pub fn draw(draw: &Draw, rect: &Rect, resolution: f32, colorer: &mut dyn Colorer) {
+    // `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
+    // the `rect` are retained in the grid.
+    pub fn draw(draw: &Draw, rect: &Rect, num_boxes: Point2<i32>, colorer: &mut dyn Colorer) {
+        let box_width = rect.w() / num_boxes.x as f32;
+        let box_height = rect.h() / num_boxes.y as f32;
+
         // This rect is shifted and moved around the grid to help align the rect we're
-        // drawing
-        let mut aligning_rect = Rect::from_wh(pt2(resolution, resolution))
+        // in the process of drawing as we iterate below.
+        let mut aligning_rect = Rect::from_wh(pt2(box_width, box_height))
             .align_left_of(*rect)
             .align_bottom_of(*rect);
-
-        // Total number of rectangles in the grid; We take the ceiling to ensure we cover the whole
-        // grid.
-        let t_x = (rect.w() / resolution).ceil() as i32;
-        let t_y = (rect.h() / resolution).ceil() as i32;
 
         // Indices of the rectangle within the grid.
         let mut i_x = 0;
         let mut i_y = 0;
+
+        // Start from the bottom left and continue till we get to the top right.
         while aligning_rect.y.start <= rect.top() {
             while aligning_rect.x.start <= rect.right() {
-                let radius = rect.w();
-
                 // TODO: Clean up this randomization (ajain)
+                // TODO: This should be abstracted out into a mixin style
+                // trait that can be added alongised the InterpolatedColorer trait
+                let radius = rect.w();
                 let mut color = Hsv::new(0.0, 0.0, 1.0);
 
                 // Colors in a circle
@@ -35,21 +38,21 @@ impl ColoredGrid {
                     + (aligning_rect.bottom() + (radius / 2.0)).pow(2.0)
                     <= radius.pow(2.0)
                 {
-                    color = colorer.color(i_x, i_y, t_x, t_y);
+                    color = colorer.color(i_x, i_y, num_boxes.x, num_boxes.y);
                 } else if random_f32() < 0.70 {
                     color = Hsv::new(200.0, 0.9, 1.0);
                 }
 
                 draw.rect()
-                    .wh(pt2(resolution, resolution))
+                    .wh(pt2(box_width, box_height))
                     .xy(aligning_rect.xy())
                     .color(color);
-                aligning_rect = aligning_rect.shift_x(resolution);
+                aligning_rect = aligning_rect.shift_x(box_width);
                 i_x += 1
             }
             // Reset x back to the left
             aligning_rect = aligning_rect.align_left_of(*rect);
-            aligning_rect = aligning_rect.shift_y(resolution);
+            aligning_rect = aligning_rect.shift_y(box_height);
             i_x = 0;
             i_y += 1
         }
@@ -155,7 +158,6 @@ impl AlternatingColorer {
 }
 
 pub struct InterpolatedColorer {
-    color_range: (Hsv, Hsv),
     base_gradient: Gradient<Hsv>,
 }
 
@@ -169,10 +171,7 @@ impl Colorer for InterpolatedColorer {
 impl InterpolatedColorer {
     pub fn new(color_range: (Hsv, Hsv)) -> Self {
         let base_gradient = Gradient::new(vec![color_range.0, color_range.1]);
-        InterpolatedColorer {
-            color_range,
-            base_gradient,
-        }
+        InterpolatedColorer { base_gradient }
     }
 
     // TODO: This can be precomputed if we know the number of tiles in the grid when the
@@ -184,7 +183,7 @@ impl InterpolatedColorer {
 
         // 30.0 degree step for now. Parametrize this
         let y_gradient_end = y_gradient_start + Hsv::new(30.0, 0.0, 0.0);
-        
+
         Gradient::new(vec![y_gradient_start, y_gradient_end])
     }
 }

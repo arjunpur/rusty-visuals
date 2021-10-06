@@ -24,9 +24,10 @@ fn view(app: &App, _m: &Model, frame: Frame) {
     let rect = app.window_rect();
 
     let num_boxes_in_width = 200.0;
+    let box_size = rect.w() / num_boxes_in_width;
     let mut colorer =
-        grid::InterpolatedColorer::new((Hsv::new(00.0, 1.0, 1.0), Hsv::new(60.0, 1.0, 1.0)));
-    let _grid = grid::ColoredGrid::draw(&draw, &rect, rect.w() / num_boxes_in_width, &mut colorer);
+        grid::InterpolatedColorer::new((Hsv::new(0.0, 1.0, 1.0), Hsv::new(60.0, 1.0, 1.0)));
+    let _grid = grid::ColoredGrid::draw(&draw, &rect, box_size, &mut colorer);
 
     draw.background().color(WHITE);
     draw.to_frame(app, &frame).unwrap();
