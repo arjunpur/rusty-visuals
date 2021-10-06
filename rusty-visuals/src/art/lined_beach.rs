@@ -1,7 +1,6 @@
 use nannou::prelude::*;
 use rusty_visuals::*;
 
-
 const GRID_SIDE_LENGTH: f32 = 5.0;
 
 fn main() {
@@ -56,7 +55,8 @@ fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect) {
     //     Hsv::new(36.0, 0.53, 0.63),
     //     Hsv::new(30.0, 0.53, 0.63),
     // ]));
-    grid::ColoredGrid::draw(draw, &positioning_rect, GRID_SIDE_LENGTH, &mut colorer);
+    let num_boxes = pt2(240, 240);
+    grid::ColoredGrid::draw(draw, &positioning_rect, num_boxes, &mut colorer);
 }
 
 fn draw_water(draw: &Draw, heights: &Heights, rect: Rect) {
