@@ -24,9 +24,9 @@ fn view(app: &App, _m: &Model, frame: Frame) {
     let rect = app.window_rect();
 
     let num_boxes = pt2(200, 200);
-    let mut colorer =
+    let colorer =
         grid::InterpolatedColorer::new((Hsv::new(0.0, 1.0, 1.0), Hsv::new(60.0, 1.0, 1.0)));
-    let _grid = grid::ColoredGrid::draw(&draw, &rect, num_boxes, &mut colorer);
+    let _grid = grid::ColoredGrid::draw(&draw, &rect, num_boxes, colorer);
 
     draw.background().color(WHITE);
     draw.to_frame(app, &frame).unwrap();

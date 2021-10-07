@@ -50,13 +50,13 @@ fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect) {
         .align_left_of(rect)
         .align_bottom_of(rect);
 
-    let mut colorer = grid::NoiseColorer::new(Hsv::new(36.0, 0.53, 0.63), vec2(29.0, 42.0));
+    let colorer = grid::NoiseColorer::new(Hsv::new(36.0, 0.53, 0.63), vec2(29.0, 42.0));
     // let mut colorer = grid::AlternatingColorer::new(VecDeque::from(vec![
     //     Hsv::new(36.0, 0.53, 0.63),
     //     Hsv::new(30.0, 0.53, 0.63),
     // ]));
     let num_boxes = pt2(240, 240);
-    grid::ColoredGrid::draw(draw, &positioning_rect, num_boxes, &mut colorer);
+    grid::ColoredGrid::draw(draw, &positioning_rect, num_boxes, colorer);
 }
 
 fn draw_water(draw: &Draw, heights: &Heights, rect: Rect) {
