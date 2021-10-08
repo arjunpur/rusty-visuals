@@ -10,7 +10,7 @@ pub struct ColoredGrid {}
 impl ColoredGrid {
     // `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
     // the `rect` are retained in the grid.
-    pub fn draw<T: Colorer>(draw: &Draw, rect: &Rect, num_boxes: Point2<i32>, mut colorer: T) {
+    pub fn draw(draw: &Draw, rect: &Rect, num_boxes: Point2<i32>, colorer: &mut dyn Colorer) {
         let box_width = rect.w() / num_boxes.x as f32;
         let box_height = rect.h() / num_boxes.y as f32;
 
@@ -65,6 +65,37 @@ pub trait Colorer {
     // t_x: The total number of columns
     // t_y: The total number of rows
     fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv;
+}
+
+pub struct InterpolatedColorer {
+    base_gradient: Gradient<Hsv>,
+}
+
+impl Colorer for InterpolatedColorer {
+    fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
+        let color_for_idx = map_range(i_x, 0, t_x, 0.0, 1.0);
+        self.get_gradient(i_x, i_y, t_x, t_y).get(color_for_idx)
+    }
+}
+
+impl InterpolatedColorer {
+    pub fn new(color_range: (Hsv, Hsv)) -> Self {
+        let base_gradient = Gradient::new(vec![color_range.0, color_range.1]);
+        InterpolatedColorer { base_gradient }
+    }
+
+    // TODO: This can be precomputed if we know the number of tiles in the grid when the
+    // interpolated colorer is constructed.
+    // TODO:
+    fn get_gradient(&mut self, _i_x: i32, i_y: i32, _t_x: i32, t_y: i32) -> Gradient<Hsv> {
+        let y_gradient_start_idx = map_range(i_y, 0, t_y, 0.0, 1.0);
+        let y_gradient_start = self.base_gradient.get(y_gradient_start_idx);
+
+        // 30.0 degree step for now. Parametrize this
+        let y_gradient_end = y_gradient_start + Hsv::new(30.0, 0.0, 0.0);
+
+        Gradient::new(vec![y_gradient_start, y_gradient_end])
+    }
 }
 
 pub struct NoiseColorer {
@@ -154,36 +185,5 @@ impl Colorer for AlternatingColorer {
 impl AlternatingColorer {
     pub fn new(colors: VecDeque<Hsv>) -> Self {
         AlternatingColorer { colors }
-    }
-}
-
-pub struct InterpolatedColorer {
-    base_gradient: Gradient<Hsv>,
-}
-
-impl Colorer for InterpolatedColorer {
-    fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
-        let color_for_idx = map_range(i_x, 0, t_x, 0.0, 1.0);
-        self.get_gradient(i_x, i_y, t_x, t_y).get(color_for_idx)
-    }
-}
-
-impl InterpolatedColorer {
-    pub fn new(color_range: (Hsv, Hsv)) -> Self {
-        let base_gradient = Gradient::new(vec![color_range.0, color_range.1]);
-        InterpolatedColorer { base_gradient }
-    }
-
-    // TODO: This can be precomputed if we know the number of tiles in the grid when the
-    // interpolated colorer is constructed.
-    // TODO:
-    fn get_gradient(&mut self, _i_x: i32, i_y: i32, _t_x: i32, t_y: i32) -> Gradient<Hsv> {
-        let y_gradient_start_idx = map_range(i_y, 0, t_y, 0.0, 1.0);
-        let y_gradient_start = self.base_gradient.get(y_gradient_start_idx);
-
-        // 30.0 degree step for now. Parametrize this
-        let y_gradient_end = y_gradient_start + Hsv::new(30.0, 0.0, 0.0);
-
-        Gradient::new(vec![y_gradient_start, y_gradient_end])
     }
 }
