@@ -10,7 +10,7 @@ pub struct ColoredGrid {}
 impl ColoredGrid {
     // `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
     // the `rect` are retained in the grid.
-    pub fn draw(draw: &Draw, rect: &Rect, num_boxes: Point2<i32>, colorer: &mut dyn Colorer) {
+    pub fn draw(draw: &Draw, rect: &Rect, num_boxes: Point2<i32>, colorer: &mut Box<dyn Colorer>) {
         let box_width = rect.w() / num_boxes.x as f32;
         let box_height = rect.h() / num_boxes.y as f32;
 

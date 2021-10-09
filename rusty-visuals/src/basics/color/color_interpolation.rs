@@ -6,21 +6,19 @@ use std::collections::VecDeque;
 use std::iter::FromIterator;
 
 fn main() {
-    nannou::app(model).run();
+    nannou::app(model)
+        .simple_window(view)
+        .update(update)
+        .size(1200, 1200)
+        .run();
 }
 
 struct Model {
     colorers: VecDeque<Box<dyn Colorer>>,
+    current_colorer: Box<dyn Colorer>,
 }
 
 fn model(app: &App) -> Model {
-    app.new_window()
-        .size(1200, 1200)
-        .event(event)
-        .view(view)
-        .build()
-        .unwrap();
-
     let sun_and_sky_colorer = SunAndSky::new(InterpolatedColorer::new((
         Hsv::new(0.0, 1.0, 1.0),
         Hsv::new(60.0, 1.0, 1.0),
@@ -32,10 +30,17 @@ fn model(app: &App) -> Model {
         ))),
         Box::new(sun_and_sky_colorer),
     ];
-    let colorers_vec_deque = VecDeque::from(colorers);
+    let mut colorers_vec_deque = VecDeque::from(colorers);
+    let mut current_colorer = colorers_vec_deque.pop_front().unwrap();
     Model {
         colorers: colorers_vec_deque,
+        current_colorer: current_colorer,
     }
+}
+
+fn update(app: &App, m: &mut Model, _update: Update) {
+    let mut current_colorer_option = m.colorers.pop_front().unwrap();
+    let colorer = current_colorer_option.as_mut();
 }
 
 fn view(app: &App, m: &Model, frame: Frame) {
@@ -43,9 +48,7 @@ fn view(app: &App, m: &Model, frame: Frame) {
     let rect = app.window_rect();
 
     let num_boxes = pt2(200, 200);
-    let colorer_clone = m.colorers.front().unwrap().clone();
-    let colorer = colorer_clone.as_mut();
-    let _grid = grid::ColoredGrid::draw(&draw, &rect, num_boxes, colorer);
+    let _grid = grid::ColoredGrid::draw(&draw, &rect, num_boxes, m.current_colorer);
 
     draw.background().color(WHITE);
     draw.to_frame(app, &frame).unwrap();
