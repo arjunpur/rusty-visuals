@@ -5,12 +5,18 @@ use nannou::prelude::*;
 
 use std::collections::vec_deque::*;
 
-pub struct ColoredGrid {}
+pub struct ColoredGrid<T: Colorer> {
+    colorer: T,
+}
 
-impl ColoredGrid {
+impl<T: Colorer> ColoredGrid<T> {
+    pub fn new(colorer: T) -> Self {
+        ColoredGrid { colorer }
+    }
+
     // `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
     // the `rect` are retained in the grid.
-    pub fn draw(draw: &Draw, rect: &Rect, num_boxes: Point2<i32>, colorer: &mut Box<dyn Colorer>) {
+    pub fn draw(&mut self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
         let box_width = rect.w() / num_boxes.x as f32;
         let box_height = rect.h() / num_boxes.y as f32;
 
@@ -38,7 +44,7 @@ impl ColoredGrid {
                     + (aligning_rect.bottom() + (radius / 2.0)).pow(2.0)
                     <= radius.pow(2.0)
                 {
-                    color = colorer.color(i_x, i_y, num_boxes.x, num_boxes.y);
+                    color = self.colorer.color(i_x, i_y, num_boxes.x, num_boxes.y);
                 } else if random_f32() < 0.70 {
                     color = Hsv::new(200.0, 0.9, 1.0);
                 }

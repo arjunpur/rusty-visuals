@@ -15,7 +15,7 @@ fn main() {
 
 struct Model {
     colorers: VecDeque<Box<dyn Colorer>>,
-    current_colorer: Box<dyn Colorer>,
+    colored_grid: grid::ColoredGrid,
 }
 
 fn model(app: &App) -> Model {
@@ -32,9 +32,10 @@ fn model(app: &App) -> Model {
     ];
     let mut colorers_vec_deque = VecDeque::from(colorers);
     let mut current_colorer = colorers_vec_deque.pop_front().unwrap();
+    let colored_grid = grid::ColoredGrid::new(m.current_colorer);
     Model {
         colorers: colorers_vec_deque,
-        current_colorer: current_colorer,
+        colored_grid,
     }
 }
 
