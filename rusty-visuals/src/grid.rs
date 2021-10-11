@@ -3,7 +3,7 @@ use nannou::noise::*;
 use nannou::prelude::Point2;
 use nannou::prelude::*;
 
-use std::collections::vec_deque::*;
+use std::collections::VecDeque;
 
 pub struct ColoredGrid<T: Colorer> {
     colorer: T,
@@ -16,7 +16,7 @@ impl<T: Colorer> ColoredGrid<T> {
 
     // `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
     // the `rect` are retained in the grid.
-    pub fn draw(&mut self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
+    pub fn draw(&self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
         let box_width = rect.w() / num_boxes.x as f32;
         let box_height = rect.h() / num_boxes.y as f32;
 
@@ -63,6 +63,10 @@ impl<T: Colorer> ColoredGrid<T> {
             i_y += 1
         }
     }
+
+    pub fn update(&mut self) {
+        self.colorer.update();
+    }
 }
 
 pub trait Colorer {
@@ -70,7 +74,9 @@ pub trait Colorer {
     // i_y: The row index of the rectangle to color
     // t_x: The total number of columns
     // t_y: The total number of rows
-    fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv;
+    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv;
+
+    fn update(&mut self);
 }
 
 pub struct InterpolatedColorer {
@@ -78,10 +84,12 @@ pub struct InterpolatedColorer {
 }
 
 impl Colorer for InterpolatedColorer {
-    fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
+    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
         let color_for_idx = map_range(i_x, 0, t_x, 0.0, 1.0);
         self.get_gradient(i_x, i_y, t_x, t_y).get(color_for_idx)
     }
+
+    fn update(&mut self) {}
 }
 
 impl InterpolatedColorer {
@@ -93,7 +101,7 @@ impl InterpolatedColorer {
     // TODO: This can be precomputed if we know the number of tiles in the grid when the
     // interpolated colorer is constructed.
     // TODO:
-    fn get_gradient(&mut self, _i_x: i32, i_y: i32, _t_x: i32, t_y: i32) -> Gradient<Hsv> {
+    fn get_gradient(&self, _i_x: i32, i_y: i32, _t_x: i32, t_y: i32) -> Gradient<Hsv> {
         let y_gradient_start_idx = map_range(i_y, 0, t_y, 0.0, 1.0);
         let y_gradient_start = self.base_gradient.get(y_gradient_start_idx);
 
@@ -106,19 +114,18 @@ impl InterpolatedColorer {
 
 pub struct NoiseColorer {
     base_color: Hsv,
-    current_color: Hsv,
     hue_bound: Vector2,
     noise: SuperSimplex,
 }
 
 impl Colorer for NoiseColorer {
-    fn color(&mut self, i_x: i32, i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
+    fn color(&self, i_x: i32, i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
         // Assume that base_color's Hue is not None
-        let current_hue = self.current_color.get_hue().unwrap();
+        let current_hue = self.base_color.get_hue().unwrap();
         // .unwrap_or(self.base_color.get_hue().unwrap());
 
-        let current_saturation = self.current_color.saturation;
-        let current_value = self.current_color.value;
+        let current_saturation = self.base_color.saturation;
+        let current_value = self.base_color.value;
 
         // Use noise functions to move the hue, saturation and brigthness around
         let hue_delta = self
@@ -155,9 +162,10 @@ impl Colorer for NoiseColorer {
             current_saturation + saturation_delta,
             current_value + brightness_delta,
         );
-        self.current_color = new_color;
         new_color
     }
+
+    fn update(&mut self) {}
 }
 
 impl NoiseColorer {
@@ -169,7 +177,6 @@ impl NoiseColorer {
         }
         NoiseColorer {
             base_color,
-            current_color: base_color,
             hue_bound,
             noise,
         }
@@ -177,19 +184,42 @@ impl NoiseColorer {
 }
 
 pub struct AlternatingColorer {
-    colors: VecDeque<Hsv>,
+    colors: Vec<Hsv>,
 }
 
 impl Colorer for AlternatingColorer {
-    fn color(&mut self, _i_x: i32, _i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
-        let color = self.colors.pop_front().unwrap();
-        self.colors.push_back(color);
-        color
+    fn color(&self, i_x: i32, i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
+        let position = (i_x + i_y) % self.colors.len() as i32;
+        self.colors.get(position as usize).unwrap().clone()
     }
+
+    fn update(&mut self) {}
 }
 
 impl AlternatingColorer {
-    pub fn new(colors: VecDeque<Hsv>) -> Self {
+    pub fn new(colors: Vec<Hsv>) -> Self {
         AlternatingColorer { colors }
+    }
+}
+
+pub struct RotatingColorer {
+    colorers: VecDeque<Box<dyn Colorer>>,
+}
+
+impl Colorer for RotatingColorer {
+    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
+        let colorer = self.colorers.front().unwrap();
+        (*colorer).color(i_x, i_y, t_x, t_y)
+    }
+
+    fn update(&mut self) {
+        let front_colorer = self.colorers.pop_front().unwrap();
+        self.colorers.push_back(front_colorer);
+    }
+}
+
+impl RotatingColorer {
+    pub fn new(colorers: VecDeque<Box<dyn Colorer>>) -> Self {
+        RotatingColorer { colorers }
     }
 }

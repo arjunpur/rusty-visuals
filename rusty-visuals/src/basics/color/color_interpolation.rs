@@ -6,19 +6,20 @@ use std::collections::VecDeque;
 use std::iter::FromIterator;
 
 fn main() {
-    nannou::app(model)
-        .simple_window(view)
-        .update(update)
-        .size(1200, 1200)
-        .run();
+    nannou::app(model).run()
 }
 
 struct Model {
-    colorers: VecDeque<Box<dyn Colorer>>,
-    colored_grid: grid::ColoredGrid,
+    colored_grid: grid::ColoredGrid<grid::RotatingColorer>,
 }
 
 fn model(app: &App) -> Model {
+    app.new_window()
+        .size(1200, 1200)
+        .event(event)
+        .view(view)
+        .build()
+        .unwrap();
     let sun_and_sky_colorer = SunAndSky::new(InterpolatedColorer::new((
         Hsv::new(0.0, 1.0, 1.0),
         Hsv::new(60.0, 1.0, 1.0),
@@ -30,18 +31,10 @@ fn model(app: &App) -> Model {
         ))),
         Box::new(sun_and_sky_colorer),
     ];
-    let mut colorers_vec_deque = VecDeque::from(colorers);
-    let mut current_colorer = colorers_vec_deque.pop_front().unwrap();
-    let colored_grid = grid::ColoredGrid::new(m.current_colorer);
-    Model {
-        colorers: colorers_vec_deque,
-        colored_grid,
-    }
-}
-
-fn update(app: &App, m: &mut Model, _update: Update) {
-    let mut current_colorer_option = m.colorers.pop_front().unwrap();
-    let colorer = current_colorer_option.as_mut();
+    let colorers_vec_deque = VecDeque::from(colorers);
+    let colorer = grid::RotatingColorer::new(colorers_vec_deque);
+    let colored_grid = grid::ColoredGrid::new(colorer);
+    Model { colored_grid }
 }
 
 fn view(app: &App, m: &Model, frame: Frame) {
@@ -49,7 +42,7 @@ fn view(app: &App, m: &Model, frame: Frame) {
     let rect = app.window_rect();
 
     let num_boxes = pt2(200, 200);
-    let _grid = grid::ColoredGrid::draw(&draw, &rect, num_boxes, m.current_colorer);
+    let _grid = m.colored_grid.draw(&draw, &rect, num_boxes);
 
     draw.background().color(WHITE);
     draw.to_frame(app, &frame).unwrap();
@@ -65,8 +58,7 @@ fn event(app: &App, m: &mut Model, event: WindowEvent) {
             println!("Mouse Position: {}, {}", app.mouse.y, app.mouse.x);
         }
         KeyPressed(Key::C) => {
-            let front = m.colorers.pop_front().unwrap();
-            m.colorers.push_back(front);
+            m.colored_grid.update();
         }
         _other => (),
     }
@@ -77,9 +69,11 @@ struct SunAndSky {
 }
 
 impl Colorer for SunAndSky {
-    fn color(&mut self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
+    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
         return self.interpolated_colorer.color(i_x, i_y, t_x, t_y);
     }
+
+    fn update(&mut self) {}
 }
 
 impl SunAndSky {
