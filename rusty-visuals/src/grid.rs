@@ -33,21 +33,13 @@ impl<T: Colorer> ColoredGrid<T> {
         // Start from the bottom left and continue till we get to the top right.
         while aligning_rect.y.start <= rect.top() {
             while aligning_rect.x.start <= rect.right() {
-                // TODO: Clean up this randomization (ajain)
-                // TODO: This should be abstracted out into a mixin style
-                // trait that can be added alongised the InterpolatedColorer trait
-                let radius = rect.w();
-                let mut color = Hsv::new(0.0, 0.0, 1.0);
-
-                // Colors in a circle
-                if (aligning_rect.left() + (radius / 2.0)).pow(2.0)
-                    + (aligning_rect.bottom() + (radius / 2.0)).pow(2.0)
-                    <= radius.pow(2.0)
-                {
-                    color = self.colorer.color(i_x, i_y, num_boxes.x, num_boxes.y);
-                } else if random_f32() < 0.70 {
-                    color = Hsv::new(200.0, 0.9, 1.0);
-                }
+                let params = ColorerParams {
+                    box_pos: vec2(i_x, i_y),
+                    total_num_boxes: num_boxes,
+                    current_box_rect: &aligning_rect,
+                    grid_rect: rect,
+                };
+                let color = self.colorer.color(params);
 
                 draw.rect()
                     .wh(pt2(box_width, box_height))
@@ -69,12 +61,15 @@ impl<T: Colorer> ColoredGrid<T> {
     }
 }
 
+pub struct ColorerParams<'a> {
+    pub box_pos: Vector2<i32>,
+    pub total_num_boxes: Vector2<i32>,
+    pub current_box_rect: &'a Rect,
+    pub grid_rect: &'a Rect,
+}
+
 pub trait Colorer {
-    // i_x: The column index of the rectangle to color
-    // i_y: The row index of the rectangle to color
-    // t_x: The total number of columns
-    // t_y: The total number of rows
-    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv;
+    fn color(&self, params: ColorerParams) -> Hsv;
 
     fn update(&mut self);
 }
@@ -84,9 +79,15 @@ pub struct InterpolatedColorer {
 }
 
 impl Colorer for InterpolatedColorer {
-    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
-        let color_for_idx = map_range(i_x, 0, t_x, 0.0, 1.0);
-        self.get_gradient(i_x, i_y, t_x, t_y).get(color_for_idx)
+    fn color(&self, params: ColorerParams) -> Hsv {
+        let color_for_idx = map_range(params.box_pos.x, 0, params.total_num_boxes.x, 0.0, 1.0);
+        self.get_gradient(
+            params.box_pos.x,
+            params.box_pos.y,
+            params.total_num_boxes.x,
+            params.total_num_boxes.y,
+        )
+        .get(color_for_idx)
     }
 
     fn update(&mut self) {}
@@ -119,7 +120,7 @@ pub struct NoiseColorer {
 }
 
 impl Colorer for NoiseColorer {
-    fn color(&self, i_x: i32, i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
+    fn color(&self, params: ColorerParams) -> Hsv {
         // Assume that base_color's Hue is not None
         let current_hue = self.base_color.get_hue().unwrap();
         // .unwrap_or(self.base_color.get_hue().unwrap());
@@ -128,19 +129,20 @@ impl Colorer for NoiseColorer {
         let current_value = self.base_color.value;
 
         // Use noise functions to move the hue, saturation and brigthness around
-        let hue_delta = self
-            .noise
-            .get([i_x as f64, i_y as f64, current_hue.to_radians() as f64])
-            / 100.0;
+        let hue_delta = self.noise.get([
+            params.box_pos.x as f64,
+            params.box_pos.y as f64,
+            current_hue.to_radians() as f64,
+        ]) / 100.0;
         let saturation_delta = self.noise.get([
-            i_x as f64 + 1000.0,
-            i_y as f64 + 1000.0,
+            params.box_pos.x as f64 + 1000.0,
+            params.box_pos.y as f64 + 1000.0,
             current_saturation as f64,
         ]) as f32
             / 100.0;
         let brightness_delta = self.noise.get([
-            i_x as f64 + 10000.0,
-            i_y as f64 + 10000.0,
+            params.box_pos.x as f64 + 10000.0,
+            params.box_pos.y as f64 + 10000.0,
             current_value as f64,
         ]) as f32
             / 100.0;
@@ -188,8 +190,8 @@ pub struct AlternatingColorer {
 }
 
 impl Colorer for AlternatingColorer {
-    fn color(&self, i_x: i32, i_y: i32, _t_x: i32, _t_y: i32) -> Hsv {
-        let position = (i_x + i_y) % self.colors.len() as i32;
+    fn color(&self, params: ColorerParams) -> Hsv {
+        let position = (params.box_pos.x + params.box_pos.y) % self.colors.len() as i32;
         self.colors.get(position as usize).unwrap().clone()
     }
 
@@ -207,9 +209,9 @@ pub struct RotatingColorer {
 }
 
 impl Colorer for RotatingColorer {
-    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
+    fn color(&self, params: ColorerParams) -> Hsv {
         let colorer = self.colorers.front().unwrap();
-        (*colorer).color(i_x, i_y, t_x, t_y)
+        (*colorer).color(params)
     }
 
     fn update(&mut self) {

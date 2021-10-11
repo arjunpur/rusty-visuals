@@ -1,9 +1,8 @@
 use nannou::color::*;
 use nannou::prelude::*;
-use rusty_visuals::grid::{Colorer, InterpolatedColorer};
+use rusty_visuals::grid::{Colorer, ColorerParams, InterpolatedColorer};
 use rusty_visuals::*;
 use std::collections::VecDeque;
-use std::iter::FromIterator;
 
 fn main() {
     nannou::app(model).run()
@@ -26,8 +25,8 @@ fn model(app: &App) -> Model {
     )));
     let colorers: Vec<Box<dyn Colorer>> = vec![
         Box::new(InterpolatedColorer::new((
-            Hsv::new(0.0, 1.0, 1.0),
             Hsv::new(60.0, 1.0, 1.0),
+            Hsv::new(180.0, 1.0, 1.0),
         ))),
         Box::new(sun_and_sky_colorer),
     ];
@@ -69,8 +68,18 @@ struct SunAndSky {
 }
 
 impl Colorer for SunAndSky {
-    fn color(&self, i_x: i32, i_y: i32, t_x: i32, t_y: i32) -> Hsv {
-        return self.interpolated_colorer.color(i_x, i_y, t_x, t_y);
+    fn color(&self, params: ColorerParams) -> Hsv {
+        let radius = params.grid_rect.w();
+        // Colors in a circle
+        if (params.current_box_rect.left() + (radius / 2.0)).pow(2.0)
+            + (params.current_box_rect.bottom() + (radius / 2.0)).pow(2.0)
+            <= radius.pow(2.0)
+        {
+            return self.interpolated_colorer.color(params);
+        } else if random_f32() < 0.70 {
+            return Hsv::new(200.0, 0.9, 1.0);
+        }
+        return self.interpolated_colorer.color(params);
     }
 
     fn update(&mut self) {}
