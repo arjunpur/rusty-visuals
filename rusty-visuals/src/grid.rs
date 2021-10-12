@@ -5,6 +5,9 @@ use nannou::prelude::*;
 
 use std::collections::VecDeque;
 
+/// ColoredGrid is a an abstraction that renders a grid using the passed in
+/// nannou::Draw reference. The ColoredGrid owns an arbitrary Colorer that is
+/// invoked (like a callback) on every individual box of the grid.
 pub struct ColoredGrid<T: Colorer> {
     colorer: T,
 }
@@ -14,8 +17,11 @@ impl<T: Colorer> ColoredGrid<T> {
         ColoredGrid { colorer }
     }
 
-    // `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
-    // the `rect` are retained in the grid.
+    /// `draw` renders a grid using the supplied parameters to configure the resolution
+    /// and height / width. The `Colorer` is used to color individual boxes on the grid.
+    /// `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
+    /// the `rect` are retained in the grid.
+    /// TODO: Move the `num_boxes`, and other parameters to the struct level.
     pub fn draw(&self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
         let box_width = rect.w() / num_boxes.x as f32;
         let box_height = rect.h() / num_boxes.y as f32;
@@ -61,6 +67,10 @@ impl<T: Colorer> ColoredGrid<T> {
     }
 }
 
+/// ColorerParams are all the various options provided to a Colorer's
+/// `color` function
+/// TODO: This should be generic so that the Colorer can color other things
+/// and not just grids.
 pub struct ColorerParams<'a> {
     pub box_pos: Vector2<i32>,
     pub total_num_boxes: Vector2<i32>,
@@ -68,12 +78,17 @@ pub struct ColorerParams<'a> {
     pub grid_rect: &'a Rect,
 }
 
+/// Colorer is the trait that all Colorer's must implement. As long as a struct
+/// implements this trait, it can be used to color a ColoredGrid.
 pub trait Colorer {
     fn color(&self, params: ColorerParams) -> Hsv;
 
     fn update(&mut self);
 }
 
+/// InterpolatedColorer will color the grid's first row with the provided Gradient.
+/// All subsequent rows are colored starting with the color pointed to by the current row's index
+/// into the Gradient. The end of the Gradient is shifted by 30 degrees.
 pub struct InterpolatedColorer {
     base_gradient: Gradient<Hsv>,
 }
@@ -101,15 +116,40 @@ impl InterpolatedColorer {
 
     // TODO: This can be precomputed if we know the number of tiles in the grid when the
     // interpolated colorer is constructed.
-    // TODO:
     fn get_gradient(&self, _i_x: i32, i_y: i32, _t_x: i32, t_y: i32) -> Gradient<Hsv> {
         let y_gradient_start_idx = map_range(i_y, 0, t_y, 0.0, 1.0);
         let y_gradient_start = self.base_gradient.get(y_gradient_start_idx);
 
-        // 30.0 degree step for now. Parametrize this
-        let y_gradient_end = y_gradient_start + Hsv::new(30.0, 0.0, 0.0);
+        // Keep the difference between the new start and end the same by using the original
+        // gradient's difference
+        let original_difference = self.base_gradient.get(1.0) - self.base_gradient.get(0.0);
+        let y_gradient_end = y_gradient_start + original_difference;
 
         Gradient::new(vec![y_gradient_start, y_gradient_end])
+    }
+}
+
+/// RotatingColorer keeps a VecDeque of colorers and will always use the front of the VecDeque
+/// as the current colorer. The colorer can be rotated by invoking the `update` method
+pub struct RotatingColorer {
+    colorers: VecDeque<Box<dyn Colorer>>,
+}
+
+impl Colorer for RotatingColorer {
+    fn color(&self, params: ColorerParams) -> Hsv {
+        let colorer = self.colorers.front().unwrap();
+        (*colorer).color(params)
+    }
+
+    fn update(&mut self) {
+        let front_colorer = self.colorers.pop_front().unwrap();
+        self.colorers.push_back(front_colorer);
+    }
+}
+
+impl RotatingColorer {
+    pub fn new(colorers: VecDeque<Box<dyn Colorer>>) -> Self {
+        RotatingColorer { colorers }
     }
 }
 
@@ -201,27 +241,5 @@ impl Colorer for AlternatingColorer {
 impl AlternatingColorer {
     pub fn new(colors: Vec<Hsv>) -> Self {
         AlternatingColorer { colors }
-    }
-}
-
-pub struct RotatingColorer {
-    colorers: VecDeque<Box<dyn Colorer>>,
-}
-
-impl Colorer for RotatingColorer {
-    fn color(&self, params: ColorerParams) -> Hsv {
-        let colorer = self.colorers.front().unwrap();
-        (*colorer).color(params)
-    }
-
-    fn update(&mut self) {
-        let front_colorer = self.colorers.pop_front().unwrap();
-        self.colorers.push_back(front_colorer);
-    }
-}
-
-impl RotatingColorer {
-    pub fn new(colorers: VecDeque<Box<dyn Colorer>>) -> Self {
-        RotatingColorer { colorers }
     }
 }
