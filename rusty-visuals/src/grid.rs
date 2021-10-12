@@ -199,12 +199,12 @@ impl Colorer for NoiseColorer {
         //     % range_size)
         //     + self.hue_bound.x;
         let new_hue = current_hue.to_radians() as f32 + hue_delta as f32;
-        let new_color = Hsv::new(
+        
+        Hsv::new(
             new_hue.to_degrees(),
             current_saturation + saturation_delta,
             current_value + brightness_delta,
-        );
-        new_color
+        )
     }
 
     fn update(&mut self) {}
@@ -232,7 +232,7 @@ pub struct AlternatingColorer {
 impl Colorer for AlternatingColorer {
     fn color(&self, params: ColorerParams) -> Hsv {
         let position = (params.box_pos.x + params.box_pos.y) % self.colors.len() as i32;
-        self.colors.get(position as usize).unwrap().clone()
+        *self.colors.get(position as usize).unwrap()
     }
 
     fn update(&mut self) {}

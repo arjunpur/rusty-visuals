@@ -79,7 +79,7 @@ impl Colorer for SunAndSky {
         } else if random_f32() < 0.70 {
             return Hsv::new(200.0, 0.9, 1.0);
         }
-        return Hsv::new(0.0, 0.0, 1.0);
+        Hsv::new(0.0, 0.0, 1.0)
     }
 
     fn update(&mut self) {}

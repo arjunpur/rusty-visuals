@@ -7,7 +7,9 @@ fn main() {
     nannou::app(model).run();
 }
 
-struct Model {}
+struct Model {
+    colored_grid: grid::ColoredGrid<grid::NoiseColorer>,
+}
 
 struct Heights {
     sand_height: f32,
@@ -22,10 +24,13 @@ fn model(app: &App) -> Model {
         .view(view)
         .build()
         .unwrap();
-    Model {}
+    let colorer = grid::NoiseColorer::new(Hsv::new(36.0, 0.53, 0.63), vec2(29.0, 42.0));
+    let colored_grid = grid::ColoredGrid::new(colorer);
+
+    Model { colored_grid }
 }
 
-fn view(app: &App, _m: &Model, frame: Frame) {
+fn view(app: &App, m: &Model, frame: Frame) {
     let draw = app.draw();
     let rect = app.window_rect();
 
@@ -37,26 +42,26 @@ fn view(app: &App, _m: &Model, frame: Frame) {
         sky_height: 2.0 * (rect.h() / 5.0),
     };
 
-    draw_sand(&draw, &heights, rect);
+    draw_sand(&draw, &heights, rect, &m.colored_grid);
     draw_water(&draw, &heights, rect);
     draw_sky(&draw, &heights, rect);
 
     draw.to_frame(app, &frame).unwrap();
 }
 
-fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect) {
+fn draw_sand(
+    draw: &Draw,
+    heights: &Heights,
+    rect: Rect,
+    colored_grid: &grid::ColoredGrid<grid::NoiseColorer>,
+) {
     let _yellow = Hsv::new(36.0, 0.53, 0.63);
     let positioning_rect = Rect::from_wh(vec2(rect.w(), heights.sand_height))
         .align_left_of(rect)
         .align_bottom_of(rect);
 
-    let colorer = grid::NoiseColorer::new(Hsv::new(36.0, 0.53, 0.63), vec2(29.0, 42.0));
-    // let mut colorer = grid::AlternatingColorer::new(VecDeque::from(vec![
-    //     Hsv::new(36.0, 0.53, 0.63),
-    //     Hsv::new(30.0, 0.53, 0.63),
-    // ]));
     let num_boxes = pt2(240, 240);
-    grid::ColoredGrid::draw(draw, &positioning_rect, num_boxes, colorer);
+    colored_grid.draw(draw, &positioning_rect, num_boxes);
 }
 
 fn draw_water(draw: &Draw, heights: &Heights, rect: Rect) {
