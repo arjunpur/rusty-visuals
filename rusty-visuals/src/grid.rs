@@ -1,4 +1,5 @@
 use nannou::color::*;
+use nannou::draw::{Drawing, Primitive};
 use nannou::noise::*;
 use nannou::prelude::Point2;
 use nannou::prelude::*;
@@ -9,14 +10,34 @@ use std::collections::VecDeque;
 /// nannou::Draw reference. The ColoredGrid owns an arbitrary Colorer that is
 /// invoked (like a callback) on every individual box of the grid.
 pub struct ColoredGrid<T: Colorer> {
-    colorer: T,
+    grid: Grid<T, DefaultDrawer>,
 }
 
 impl<T: Colorer> ColoredGrid<T> {
     pub fn new(colorer: T) -> Self {
-        ColoredGrid { colorer }
+        ColoredGrid {
+            grid: Grid::new(colorer, DefaultDrawer::new()),
+        }
     }
 
+    pub fn draw(&self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
+        self.grid.draw(draw, rect, num_boxes);
+    }
+
+    pub fn update(&mut self) {
+        self.grid.update();
+    }
+}
+
+pub struct Grid<T: Colorer, U: Drawer> {
+    colorer: T,
+    drawer: U,
+}
+
+impl<T: Colorer, U: Drawer> Grid<T, U> {
+    pub fn new(colorer: T, drawer: U) -> Self {
+        Grid { colorer, drawer }
+    }
     /// `draw` renders a grid using the supplied parameters to configure the resolution
     /// and height / width. The `Colorer` is used to color individual boxes on the grid.
     /// `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
@@ -47,9 +68,14 @@ impl<T: Colorer> ColoredGrid<T> {
                 };
                 let color = self.colorer.color(params);
 
-                draw.rect()
-                    .wh(pt2(box_width, box_height))
-                    .xy(aligning_rect.xy())
+                self.drawer
+                    .draw(
+                        draw,
+                        DrawParams {
+                            box_dimensions: vec2(box_width, box_height),
+                            aligning_rect: &aligning_rect,
+                        },
+                    )
                     .color(color);
                 aligning_rect = aligning_rect.shift_x(box_width);
                 i_x += 1
@@ -64,6 +90,31 @@ impl<T: Colorer> ColoredGrid<T> {
 
     pub fn update(&mut self) {
         self.colorer.update();
+    }
+}
+
+pub struct DrawParams<'a> {
+    box_dimensions: Vector2,
+    aligning_rect: &'a Rect,
+}
+
+pub trait Drawer {
+    fn draw<T>(&self, draw: &Draw, params: DrawParams) -> Drawing<T>;
+}
+
+pub struct DefaultDrawer {}
+
+impl Drawer for DefaultDrawer {
+    fn draw<T>(&self, draw: &Draw, params: DrawParams) -> Drawing<'_, Primitive::Rect> {
+        draw.rect()
+            .wh(pt2(params.box_dimensions.x, params.box_dimensions.y))
+            .xy(params.aligning_rect.xy())
+    }
+}
+
+impl DefaultDrawer {
+    fn new() -> Self {
+        DefaultDrawer {}
     }
 }
 
@@ -199,7 +250,7 @@ impl Colorer for NoiseColorer {
         //     % range_size)
         //     + self.hue_bound.x;
         let new_hue = current_hue.to_radians() as f32 + hue_delta as f32;
-        
+
         Hsv::new(
             new_hue.to_degrees(),
             current_saturation + saturation_delta,
