@@ -34,6 +34,8 @@ pub struct Grid<T: Colorer, U: Drawer> {
     drawer: U,
 }
 
+// TODO: Look into how nannou composes these various types for inspiration on higher order
+// generative forms
 impl<T: Colorer, U: Drawer> Grid<T, U> {
     pub fn new(colorer: T, drawer: U) -> Self {
         Grid { colorer, drawer }
