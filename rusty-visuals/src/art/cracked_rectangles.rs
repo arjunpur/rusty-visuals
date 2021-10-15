@@ -1,4 +1,3 @@
-
 use nannou::draw::primitive::polygon::*;
 use nannou::prelude::*;
 use rand::{thread_rng, Rng};

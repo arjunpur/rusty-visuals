@@ -1,5 +1,6 @@
 use nannou::color::*;
-use nannou::draw::{Drawing, Primitive};
+use nannou::draw::properties::*;
+use nannou::draw::Drawing;
 use nannou::noise::*;
 use nannou::prelude::Point2;
 use nannou::prelude::*;
@@ -36,7 +37,7 @@ pub struct Grid<T: Colorer, U: Drawer> {
 
 // TODO: Look into how nannou composes these various types for inspiration on higher order
 // generative forms
-impl<T: Colorer, U: Drawer> Grid<T, U> {
+impl<T: Colorer, U: Drawer + SetColor<ColorScalar>> Grid<T, U> {
     pub fn new(colorer: T, drawer: U) -> Self {
         Grid { colorer, drawer }
     }
@@ -101,13 +102,13 @@ pub struct DrawParams<'a> {
 }
 
 pub trait Drawer {
-    fn draw<T>(&self, draw: &Draw, params: DrawParams) -> Drawing<T>;
+    fn draw(&self, draw: &Draw, params: DrawParams) -> Drawing;
 }
 
 pub struct DefaultDrawer {}
 
 impl Drawer for DefaultDrawer {
-    fn draw<T>(&self, draw: &Draw, params: DrawParams) -> Drawing<'_, Primitive::Rect> {
+    fn draw(&self, draw: &Draw, params: DrawParams) {
         draw.rect()
             .wh(pt2(params.box_dimensions.x, params.box_dimensions.y))
             .xy(params.aligning_rect.xy())
