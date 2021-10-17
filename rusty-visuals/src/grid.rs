@@ -101,6 +101,7 @@ pub struct DrawParams<'a> {
     aligning_rect: &'a Rect,
 }
 
+// TODO: Need to figure out how to type this correctly
 pub trait Drawer {
     fn draw(&self, draw: &Draw, params: DrawParams) -> Drawing;
 }
