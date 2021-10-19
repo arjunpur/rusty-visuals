@@ -1,6 +1,8 @@
 use nannou::color::*;
+use nannou::draw::primitive::Primitive;
 use nannou::draw::properties::*;
 use nannou::draw::Drawing;
+use nannou::math::BaseFloat;
 use nannou::noise::*;
 use nannou::prelude::Point2;
 use nannou::prelude::*;
@@ -10,14 +12,14 @@ use std::collections::VecDeque;
 /// ColoredGrid is a an abstraction that renders a grid using the passed in
 /// nannou::Draw reference. The ColoredGrid owns an arbitrary Colorer that is
 /// invoked (like a callback) on every individual box of the grid.
-pub struct ColoredGrid<T: Colorer> {
-    grid: Grid<T, DefaultDrawer>,
+pub struct ColoredGrid<'a, T: Colorer> {
+    grid: Grid<T, DefaultDrawer<'a>>,
 }
 
-impl<T: Colorer> ColoredGrid<T> {
-    pub fn new(colorer: T) -> Self {
+impl<'a, T: Colorer> ColoredGrid<'a, T> {
+    pub fn new(draw: &Draw, colorer: T) -> Self {
         ColoredGrid {
-            grid: Grid::new(colorer, DefaultDrawer::new()),
+            grid: Grid::new(colorer, DefaultDrawer::new(draw)),
         }
     }
 
@@ -37,6 +39,9 @@ pub struct Grid<T: Colorer, U: Drawer> {
 
 // TODO: Look into how nannou composes these various types for inspiration on higher order
 // generative forms
+// TODO: Is there a better pattern to compose the Drawer and the Colorer at the individual
+// grid level without performing this callback style approach of passing in structs
+// that expose callback functions on their interface.
 impl<T: Colorer, U: Drawer + SetColor<ColorScalar>> Grid<T, U> {
     pub fn new(colorer: T, drawer: U) -> Self {
         Grid { colorer, drawer }
@@ -46,7 +51,7 @@ impl<T: Colorer, U: Drawer + SetColor<ColorScalar>> Grid<T, U> {
     /// `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
     /// the `rect` are retained in the grid.
     /// TODO: Move the `num_boxes`, and other parameters to the struct level.
-    pub fn draw(&self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
+    pub fn draw(&self, rect: &Rect, num_boxes: Point2<i32>) {
         let box_width = rect.w() / num_boxes.x as f32;
         let box_height = rect.h() / num_boxes.y as f32;
 
@@ -72,13 +77,10 @@ impl<T: Colorer, U: Drawer + SetColor<ColorScalar>> Grid<T, U> {
                 let color = self.colorer.color(params);
 
                 self.drawer
-                    .draw(
-                        draw,
-                        DrawParams {
-                            box_dimensions: vec2(box_width, box_height),
-                            aligning_rect: &aligning_rect,
-                        },
-                    )
+                    .draw(DrawParams {
+                        box_dimensions: vec2(box_width, box_height),
+                        aligning_rect: &aligning_rect,
+                    })
                     .color(color);
                 aligning_rect = aligning_rect.shift_x(box_width);
                 i_x += 1
@@ -102,23 +104,26 @@ pub struct DrawParams<'a> {
 }
 
 // TODO: Need to figure out how to type this correctly
-pub trait Drawer {
-    fn draw(&self, draw: &Draw, params: DrawParams) -> Drawing;
+pub trait Drawer<S = geom::scalar::Default> {
+    fn draw(&self, draw: &Draw, params: DrawParams) -> Drawing<Primitive<S>>;
 }
 
-pub struct DefaultDrawer {}
+#[derive(Clone, Debug)]
+pub struct DefaultDrawer<'a, S = geom::scalar::Default> {
+    draw: &'a Draw<S>,
+}
 
-impl Drawer for DefaultDrawer {
-    fn draw(&self, draw: &Draw, params: DrawParams) {
+impl<'a, S> Drawer for DefaultDrawer<'a, S> {
+    fn draw(&self, draw: &Draw, params: DrawParams) -> Drawing<Primitive<S>> {
         draw.rect()
             .wh(pt2(params.box_dimensions.x, params.box_dimensions.y))
             .xy(params.aligning_rect.xy())
     }
 }
 
-impl DefaultDrawer {
-    fn new() -> Self {
-        DefaultDrawer {}
+impl<'a, S> DefaultDrawer<'a, S> {
+    fn new(draw: &Draw) -> Self {
+        DefaultDrawer { draw }
     }
 }
 
