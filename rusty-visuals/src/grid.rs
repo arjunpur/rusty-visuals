@@ -12,19 +12,27 @@ use std::collections::VecDeque;
 /// ColoredGrid is a an abstraction that renders a grid using the passed in
 /// nannou::Draw reference. The ColoredGrid owns an arbitrary Colorer that is
 /// invoked (like a callback) on every individual box of the grid.
-pub struct ColoredGrid<'a, T: Colorer> {
-    grid: Grid<T, DefaultDrawer<'a>>,
+pub struct ColoredGrid<'a, T, S>
+where
+    T: Colorer,
+    S: BaseFloat,
+{
+    grid: Grid<S, T, DefaultDrawer<'a, S>>,
 }
 
-impl<'a, T: Colorer> ColoredGrid<'a, T> {
-    pub fn new(draw: &Draw, colorer: T) -> Self {
+impl<'a, T: Colorer, S> ColoredGrid<'a, T, S>
+where
+    T: Colorer,
+    S: BaseFloat,
+{
+    pub fn new(draw: &'a Draw<S>, colorer: T) -> Self {
         ColoredGrid {
             grid: Grid::new(colorer, DefaultDrawer::new(draw)),
         }
     }
 
-    pub fn draw(&self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
-        self.grid.draw(draw, rect, num_boxes);
+    pub fn draw(&self, draw: &'a Draw<S>, rect: &Rect, num_boxes: Point2<i32>) {
+        self.grid.draw(rect, num_boxes);
     }
 
     pub fn update(&mut self) {
@@ -32,7 +40,7 @@ impl<'a, T: Colorer> ColoredGrid<'a, T> {
     }
 }
 
-pub struct Grid<T: Colorer, U: Drawer> {
+pub struct Grid<S: BaseFloat, T: Colorer, U: Drawer<S>> {
     colorer: T,
     drawer: U,
 }
@@ -42,7 +50,7 @@ pub struct Grid<T: Colorer, U: Drawer> {
 // TODO: Is there a better pattern to compose the Drawer and the Colorer at the individual
 // grid level without performing this callback style approach of passing in structs
 // that expose callback functions on their interface.
-impl<T: Colorer, U: Drawer + SetColor<ColorScalar>> Grid<T, U> {
+impl<S: BaseFloat, T: Colorer, U: Drawer<S>> Grid<S, T, U> {
     pub fn new(colorer: T, drawer: U) -> Self {
         Grid { colorer, drawer }
     }
@@ -104,25 +112,38 @@ pub struct DrawParams<'a> {
 }
 
 // TODO: Need to figure out how to type this correctly
-pub trait Drawer<S = geom::scalar::Default> {
-    fn draw(&self, draw: &Draw, params: DrawParams) -> Drawing<Primitive<S>>;
+pub trait Drawer<S>
+where
+    S: BaseFloat,
+{
+    fn draw(&self, params: DrawParams) -> Drawing<Primitive<S>>;
 }
 
 #[derive(Clone, Debug)]
-pub struct DefaultDrawer<'a, S = geom::scalar::Default> {
+pub struct DefaultDrawer<'a, S>
+where
+    S: BaseFloat,
+{
     draw: &'a Draw<S>,
 }
 
-impl<'a, S> Drawer for DefaultDrawer<'a, S> {
-    fn draw(&self, draw: &Draw, params: DrawParams) -> Drawing<Primitive<S>> {
-        draw.rect()
+impl<'a, S> Drawer<S> for DefaultDrawer<'a, S>
+where
+    S: BaseFloat,
+{
+    fn draw(&self, params: DrawParams) -> Drawing<Primitive<S>> {
+        self.draw
+            .rect()
             .wh(pt2(params.box_dimensions.x, params.box_dimensions.y))
             .xy(params.aligning_rect.xy())
     }
 }
 
-impl<'a, S> DefaultDrawer<'a, S> {
-    fn new(draw: &Draw) -> Self {
+impl<'a, S> DefaultDrawer<'a, S>
+where
+    S: BaseFloat,
+{
+    fn new(draw: &'a Draw<S>) -> Self {
         DefaultDrawer { draw }
     }
 }
