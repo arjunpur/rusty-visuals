@@ -6,26 +6,29 @@ use nannou::math::BaseFloat;
 use nannou::noise::*;
 use nannou::prelude::Point2;
 use nannou::prelude::*;
+use std::marker::PhantomData;
 
 use std::collections::VecDeque;
 
 /// ColoredGrid is a an abstraction that renders a grid using the passed in
 /// nannou::Draw reference. The ColoredGrid owns an arbitrary Colorer that is
 /// invoked (like a callback) on every individual box of the grid.
-pub struct ColoredGrid<'a, T, S>
+pub struct ColoredGrid<'a, C, T, S>
 where
-    T: Colorer,
+    C: Colorer,
     S: BaseFloat,
+    T: Into<Primitive<S>>,
 {
-    grid: Grid<S, T, DefaultDrawer<'a, S>>,
+    grid: Grid<S, C, DefaultDrawer<'a, T, S>>,
 }
 
-impl<'a, T: Colorer, S> ColoredGrid<'a, T, S>
+impl<'a, C, T, S> ColoredGrid<'a, C, T, S>
 where
-    T: Colorer,
+    C: Colorer,
     S: BaseFloat,
+    T: Into<Primitive<S>>,
 {
-    pub fn new(draw: &'a Draw<S>, colorer: T) -> Self {
+    pub fn new(draw: &'a Draw<S>, colorer: C) -> Self {
         ColoredGrid {
             grid: Grid::new(colorer, DefaultDrawer::new(draw)),
         }
@@ -43,6 +46,8 @@ where
 pub struct Grid<S: BaseFloat, T: Colorer, U: Drawer<S>> {
     colorer: T,
     drawer: U,
+    // We need to define a phantom field to satisfy the compiler (since S isn't used anywhere)
+    phantom: PhantomData<S>,
 }
 
 // TODO: Look into how nannou composes these various types for inspiration on higher order
@@ -52,7 +57,11 @@ pub struct Grid<S: BaseFloat, T: Colorer, U: Drawer<S>> {
 // that expose callback functions on their interface.
 impl<S: BaseFloat, T: Colorer, U: Drawer<S>> Grid<S, T, U> {
     pub fn new(colorer: T, drawer: U) -> Self {
-        Grid { colorer, drawer }
+        Grid {
+            colorer,
+            drawer,
+            phantom: PhantomData,
+        }
     }
     /// `draw` renders a grid using the supplied parameters to configure the resolution
     /// and height / width. The `Colorer` is used to color individual boxes on the grid.
@@ -120,26 +129,29 @@ where
 }
 
 #[derive(Clone, Debug)]
-pub struct DefaultDrawer<'a, S>
+pub struct DefaultDrawer<'a, T, S>
 where
     S: BaseFloat,
 {
     draw: &'a Draw<S>,
+    _ty: PhantomData<T>,
 }
 
-impl<'a, S> Drawer<S> for DefaultDrawer<'a, S>
+impl<'a, T, S> Drawer<S> for DefaultDrawer<'a, T, S>
 where
     S: BaseFloat,
+    T: Into<Primitive<S>>,
 {
-    fn draw(&self, params: DrawParams) -> Drawing<Primitive<S>> {
+    fn draw(&self, params: DrawParams) -> Drawing<T, S> {
         self.draw
             .rect()
             .wh(pt2(params.box_dimensions.x, params.box_dimensions.y))
             .xy(params.aligning_rect.xy())
+            .into()
     }
 }
 
-impl<'a, S> DefaultDrawer<'a, S>
+impl<'a, T, S> DefaultDrawer<'a, T, S>
 where
     S: BaseFloat,
 {
