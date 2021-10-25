@@ -10,9 +10,8 @@
 /// for cell in grid.row_major_iter() {...}
 ///
 use nannou::prelude::*;
-use std::slice::Iter;
 
-#[derive(Default, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Cell {
     xy: Vector2,
     wh: Vector2,
@@ -81,8 +80,8 @@ impl<'a> Iterator for GridIterator<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         // We're at or past (should never go past) the last row
         // of the grid.
-        let mut row_idx = self.curr.1;
         let mut col_idx = self.curr.0;
+        let mut row_idx = self.curr.1;
 
         if row_idx >= self.grid.cells.len() {
             return None;
@@ -99,14 +98,36 @@ impl<'a> Iterator for GridIterator<'a> {
 
         let cell = row.get(col_idx).unwrap();
         col_idx += 1;
-        self.curr = (row_idx, col_idx);
+        self.curr = (col_idx, row_idx);
         return Some(cell);
     }
 }
 
+// TODO: Test the actual coordinates are correct
+// TODO: Test non-square grids
+// TODO: Test grids with some empty rows
+// TODO: Test grids where the rectangle starts at an offset
+// TODO: Test grids where the rectangle is not square
 mod tests {
+    use super::Grid;
+    use nannou::prelude::*;
     #[test]
     fn can_construct_a_grid() {
-        assert_eq!(0, 0);
+        let grid_cells = vec2(5, 5);
+        let rect = geom::Rect::from_x_y_w_h(0.0, 0.0, 5.0, 5.0);
+        let grid = Grid::new(&rect, grid_cells);
+        println!("{:?}", grid.cells);
+        let mut iter = grid.row_major_iter();
+        for y in 0..grid_cells.y {
+            for x in 0..grid_cells.x {
+                let cell = iter.next();
+                assert!(cell.is_some());
+                assert_eq!(cell.unwrap().index.x, x);
+                assert_eq!(cell.unwrap().index.y, y);
+                if cell.is_some() {
+                    println!("({}, {}): {:?}", y, x, cell.unwrap());
+                }
+            }
+        }
     }
 }
