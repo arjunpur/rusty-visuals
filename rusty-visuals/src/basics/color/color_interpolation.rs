@@ -9,7 +9,7 @@ fn main() {
 }
 
 struct Model {
-    colored_grid: grid::ColoredGrid<grid::RotatingColorer>,
+    colored_grid: grid::Grid<grid::RotatingColorer>,
 }
 
 fn model(app: &App) -> Model {
@@ -32,7 +32,7 @@ fn model(app: &App) -> Model {
     ];
     let colorers_vec_deque = VecDeque::from(colorers);
     let colorer = grid::RotatingColorer::new(colorers_vec_deque);
-    let colored_grid = grid::ColoredGrid::new(colorer);
+    let colored_grid = grid::Grid::new(colorer);
     Model { colored_grid }
 }
 

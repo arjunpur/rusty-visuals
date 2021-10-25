@@ -42,6 +42,8 @@ fn view(app: &App, m: &Model, frame: Frame) {
     // (x4, y4)   (x3, y3)
     //
     // (x1, y1)   (x2, y2)
+    //
+
     for grid_y in 0..m.tile_count {
         for grid_x in 0..m.tile_count {
             let tile_w = rect.w() / m.tile_count as f32;

@@ -8,7 +8,7 @@ fn main() {
 }
 
 struct Model {
-    colored_grid: grid::ColoredGrid<grid::NoiseColorer>,
+    colored_grid: grid::Grid<grid::NoiseColorer>,
 }
 
 struct Heights {
@@ -25,7 +25,7 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
     let colorer = grid::NoiseColorer::new(Hsv::new(36.0, 0.53, 0.63), vec2(29.0, 42.0));
-    let colored_grid = grid::ColoredGrid::new(colorer);
+    let colored_grid = grid::Grid::new(colorer);
 
     Model { colored_grid }
 }
@@ -53,7 +53,7 @@ fn draw_sand(
     draw: &Draw,
     heights: &Heights,
     rect: Rect,
-    colored_grid: &grid::ColoredGrid<grid::NoiseColorer>,
+    colored_grid: &grid::Grid<grid::NoiseColorer>,
 ) {
     let _yellow = Hsv::new(36.0, 0.53, 0.63);
     let positioning_rect = Rect::from_wh(vec2(rect.w(), heights.sand_height))

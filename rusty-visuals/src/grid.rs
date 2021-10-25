@@ -1,53 +1,12 @@
 use nannou::color::*;
-use nannou::draw::primitive::Primitive;
-use nannou::draw::properties::*;
-use nannou::draw::Drawing;
-use nannou::math::BaseFloat;
 use nannou::noise::*;
 use nannou::prelude::Point2;
 use nannou::prelude::*;
-use std::marker::PhantomData;
 
 use std::collections::VecDeque;
 
-/// ColoredGrid is a an abstraction that renders a grid using the passed in
-/// nannou::Draw reference. The ColoredGrid owns an arbitrary Colorer that is
-/// invoked (like a callback) on every individual box of the grid.
-pub struct ColoredGrid<'a, C, T, S>
-where
-    C: Colorer,
-    S: BaseFloat,
-    T: Into<Primitive<S>>,
-{
-    grid: Grid<S, C, DefaultDrawer<'a, T, S>>,
-}
-
-impl<'a, C, T, S> ColoredGrid<'a, C, T, S>
-where
-    C: Colorer,
-    S: BaseFloat,
-    T: Into<Primitive<S>>,
-{
-    pub fn new(draw: &'a Draw<S>, colorer: C) -> Self {
-        ColoredGrid {
-            grid: Grid::new(colorer, DefaultDrawer::new(draw)),
-        }
-    }
-
-    pub fn draw(&self, draw: &'a Draw<S>, rect: &Rect, num_boxes: Point2<i32>) {
-        self.grid.draw(rect, num_boxes);
-    }
-
-    pub fn update(&mut self) {
-        self.grid.update();
-    }
-}
-
-pub struct Grid<S: BaseFloat, T: Colorer, U: Drawer<S>> {
+pub struct Grid<T: Colorer> {
     colorer: T,
-    drawer: U,
-    // We need to define a phantom field to satisfy the compiler (since S isn't used anywhere)
-    phantom: PhantomData<S>,
 }
 
 // TODO: Look into how nannou composes these various types for inspiration on higher order
@@ -55,20 +14,16 @@ pub struct Grid<S: BaseFloat, T: Colorer, U: Drawer<S>> {
 // TODO: Is there a better pattern to compose the Drawer and the Colorer at the individual
 // grid level without performing this callback style approach of passing in structs
 // that expose callback functions on their interface.
-impl<S: BaseFloat, T: Colorer, U: Drawer<S>> Grid<S, T, U> {
-    pub fn new(colorer: T, drawer: U) -> Self {
-        Grid {
-            colorer,
-            drawer,
-            phantom: PhantomData,
-        }
+impl<T: Colorer> Grid<T> {
+    pub fn new(colorer: T) -> Self {
+        Grid { colorer }
     }
     /// `draw` renders a grid using the supplied parameters to configure the resolution
     /// and height / width. The `Colorer` is used to color individual boxes on the grid.
     /// `rect` is the bounding box of the Grid we're drawing. The width and height and alignment of
     /// the `rect` are retained in the grid.
     /// TODO: Move the `num_boxes`, and other parameters to the struct level.
-    pub fn draw(&self, rect: &Rect, num_boxes: Point2<i32>) {
+    pub fn draw(&self, draw: &Draw, rect: &Rect, num_boxes: Point2<i32>) {
         let box_width = rect.w() / num_boxes.x as f32;
         let box_height = rect.h() / num_boxes.y as f32;
 
@@ -93,11 +48,9 @@ impl<S: BaseFloat, T: Colorer, U: Drawer<S>> Grid<S, T, U> {
                 };
                 let color = self.colorer.color(params);
 
-                self.drawer
-                    .draw(DrawParams {
-                        box_dimensions: vec2(box_width, box_height),
-                        aligning_rect: &aligning_rect,
-                    })
+                draw.rect()
+                    .wh(pt2(box_width, box_height))
+                    .xy(aligning_rect.xy())
                     .color(color);
                 aligning_rect = aligning_rect.shift_x(box_width);
                 i_x += 1
@@ -112,51 +65,6 @@ impl<S: BaseFloat, T: Colorer, U: Drawer<S>> Grid<S, T, U> {
 
     pub fn update(&mut self) {
         self.colorer.update();
-    }
-}
-
-pub struct DrawParams<'a> {
-    box_dimensions: Vector2,
-    aligning_rect: &'a Rect,
-}
-
-// TODO: Need to figure out how to type this correctly
-pub trait Drawer<S>
-where
-    S: BaseFloat,
-{
-    fn draw(&self, params: DrawParams) -> Drawing<Primitive<S>>;
-}
-
-#[derive(Clone, Debug)]
-pub struct DefaultDrawer<'a, T, S>
-where
-    S: BaseFloat,
-{
-    draw: &'a Draw<S>,
-    _ty: PhantomData<T>,
-}
-
-impl<'a, T, S> Drawer<S> for DefaultDrawer<'a, T, S>
-where
-    S: BaseFloat,
-    T: Into<Primitive<S>>,
-{
-    fn draw(&self, params: DrawParams) -> Drawing<T, S> {
-        self.draw
-            .rect()
-            .wh(pt2(params.box_dimensions.x, params.box_dimensions.y))
-            .xy(params.aligning_rect.xy())
-            .into()
-    }
-}
-
-impl<'a, T, S> DefaultDrawer<'a, T, S>
-where
-    S: BaseFloat,
-{
-    fn new(draw: &'a Draw<S>) -> Self {
-        DefaultDrawer { draw }
     }
 }
 
