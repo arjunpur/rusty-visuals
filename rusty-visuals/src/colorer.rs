@@ -2,6 +2,8 @@ use nannou::color::*;
 use nannou::noise::*;
 use nannou::prelude::*;
 
+use crate::grid;
+
 use std::collections::VecDeque;
 
 /// ColorerParams are all the various options provided to a Colorer's
@@ -9,10 +11,8 @@ use std::collections::VecDeque;
 /// TODO: This should be generic so that the Colorer can color other things
 /// and not just grids.
 pub struct ColorerParams<'a> {
-    pub box_pos: Vector2<i32>,
-    pub total_num_boxes: Vector2<i32>,
-    pub current_box_rect: &'a Rect,
-    pub grid_rect: &'a Rect,
+    pub box_pos: Vector2,
+    pub total_num_cells: &'a grid::CellIndex,
 }
 
 /// Colorer is the trait that all Colorer's must implement. As long as a struct
@@ -32,14 +32,18 @@ pub struct InterpolatedColorer {
 
 impl Colorer for InterpolatedColorer {
     fn color(&self, params: ColorerParams) -> Hsv {
-        let color_for_idx = map_range(params.box_pos.x, 0, params.total_num_boxes.x, 0.0, 1.0);
-        self.get_gradient(
+        // Choose the color on the x gradient plane
+        let color_for_idx = map_range(
             params.box_pos.x,
-            params.box_pos.y,
-            params.total_num_boxes.x,
-            params.total_num_boxes.y,
-        )
-        .get(color_for_idx)
+            0.0,
+            params.total_num_cells.col as f32,
+            0.0,
+            1.0,
+        );
+        // Create the plane for the y axis and then select the
+        // x color plane from this gradient.
+        self.get_gradient(params.box_pos.y, params.total_num_cells.row)
+            .get(color_for_idx)
     }
 
     fn update(&mut self) {}
@@ -53,8 +57,8 @@ impl InterpolatedColorer {
 
     // TODO: This can be precomputed if we know the number of tiles in the grid when the
     // interpolated colorer is constructed.
-    fn get_gradient(&self, _i_x: i32, i_y: i32, _t_x: i32, t_y: i32) -> Gradient<Hsv> {
-        let y_gradient_start_idx = map_range(i_y, 0, t_y, 0.0, 1.0);
+    fn get_gradient(&self, i_y: f32, num_rows: usize) -> Gradient<Hsv> {
+        let y_gradient_start_idx = map_range(i_y, 0.0, num_rows as f32, 0.0, 1.0);
         let y_gradient_start = self.base_gradient.get(y_gradient_start_idx);
 
         // Keep the difference between the new start and end the same by using the original
@@ -90,6 +94,7 @@ impl RotatingColorer {
     }
 }
 
+// TODO: This doesn't actually work
 pub struct NoiseColorer {
     base_color: Hsv,
     hue_bound: Vector2,
@@ -124,18 +129,12 @@ impl Colorer for NoiseColorer {
         ]) as f32
             / 100.0;
 
-        println!(
-            "current hue: {}, hue_delta: {}",
-            current_hue.to_radians(),
-            hue_delta
-        );
-
         // Move the Hue but within a range only
-        // let range_size = self.hue_bound.y - self.hue_bound.x;
-        // let new_hue = (((current_hue.to_radians() as f32 + hue_delta as f32) - self.hue_bound.x)
-        //     % range_size)
-        //     + self.hue_bound.x;
-        let new_hue = current_hue.to_radians() as f32 + hue_delta as f32;
+        let range_size = self.hue_bound.y - self.hue_bound.x;
+        let new_hue = (((current_hue.to_radians() as f32 + hue_delta as f32) - self.hue_bound.x)
+            % range_size)
+            + self.hue_bound.x;
+        // let new_hue = current_hue.to_radians() as f32 + hue_delta as f32;
 
         Hsv::new(
             new_hue.to_degrees(),
@@ -168,7 +167,8 @@ pub struct AlternatingColorer {
 
 impl Colorer for AlternatingColorer {
     fn color(&self, params: ColorerParams) -> Hsv {
-        let position = (params.box_pos.x + params.box_pos.y) % self.colors.len() as i32;
+        let position =
+            ((params.box_pos.x + params.box_pos.y).floor() as i32) % self.colors.len() as i32;
         *self.colors.get(position as usize).unwrap()
     }
 

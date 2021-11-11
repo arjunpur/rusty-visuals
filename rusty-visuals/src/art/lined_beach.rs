@@ -8,7 +8,7 @@ fn main() {
 }
 
 struct Model {
-    colored_grid: grid::Grid<grid::NoiseColorer>,
+    colorer: Box<dyn colorer::Colorer>,
 }
 
 struct Heights {
@@ -24,10 +24,11 @@ fn model(app: &App) -> Model {
         .view(view)
         .build()
         .unwrap();
-    let colorer = grid::NoiseColorer::new(Hsv::new(36.0, 0.53, 0.63), vec2(29.0, 42.0));
-    let colored_grid = grid::Grid::new(colorer);
+    let colorer = colorer::NoiseColorer::new(Hsv::new(36.0, 0.53, 0.63), vec2(29.0, 42.0));
 
-    Model { colored_grid }
+    Model {
+        colorer: Box::new(colorer),
+    }
 }
 
 fn view(app: &App, m: &Model, frame: Frame) {
@@ -42,26 +43,30 @@ fn view(app: &App, m: &Model, frame: Frame) {
         sky_height: 2.0 * (rect.h() / 5.0),
     };
 
-    draw_sand(&draw, &heights, rect, &m.colored_grid);
+    draw_sand(&draw, &heights, rect, m);
     draw_water(&draw, &heights, rect);
     draw_sky(&draw, &heights, rect);
 
     draw.to_frame(app, &frame).unwrap();
 }
 
-fn draw_sand(
-    draw: &Draw,
-    heights: &Heights,
-    rect: Rect,
-    colored_grid: &grid::Grid<grid::NoiseColorer>,
-) {
+fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect, model: &Model) {
     let _yellow = Hsv::new(36.0, 0.53, 0.63);
     let positioning_rect = Rect::from_wh(vec2(rect.w(), heights.sand_height))
         .align_left_of(rect)
         .align_bottom_of(rect);
 
-    let num_boxes = pt2(240, 240);
-    colored_grid.draw(draw, &positioning_rect, num_boxes);
+    let total_num_cells = &grid::CellIndex { row: 10, col: 10 };
+    let grid = grid::Grid::new(&positioning_rect, total_num_cells);
+    grid.row_major_iter().for_each(|cell| {
+        draw.rect()
+            .xy(cell.xy)
+            .wh(cell.wh)
+            .color(model.colorer.color(colorer::ColorerParams {
+                box_pos: cell.xy,
+                total_num_cells,
+            }));
+    })
 }
 
 fn draw_water(draw: &Draw, heights: &Heights, rect: Rect) {

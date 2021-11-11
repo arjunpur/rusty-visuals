@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 use rusty_visuals::*;
 
 // Adjust this
-const JITTER_FACTOR: f32 = 2.0;
+const JITTER_FACTOR: f32 = 0.1;
 
 fn main() {
     nannou::app(model).run();

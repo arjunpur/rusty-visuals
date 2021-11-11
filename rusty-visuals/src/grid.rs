@@ -14,8 +14,8 @@ use nannou::prelude::*;
 #[derive(Debug, Default, Clone)]
 
 pub struct CellIndex {
-    row: usize,
-    col: usize,
+    pub row: usize,
+    pub col: usize,
 }
 pub struct Cell {
     pub xy: Vector2,
@@ -46,7 +46,7 @@ impl Grid {
     /// num_cells: (number of rows, number of columns)
     /// NOTE: All the indexing and dimensions follow the matrix
     /// indexing scheme (i.e (rows, columns)).
-    fn new(bounding_rect: &Rect, num_cells: &CellIndex) -> Self {
+    pub fn new(bounding_rect: &Rect, num_cells: &CellIndex) -> Self {
         let cell_height = bounding_rect.h() / num_cells.row as f32;
         let cell_width = bounding_rect.w() / num_cells.col as f32;
 
@@ -82,7 +82,7 @@ impl Grid {
     /// The row major iterator will traverse from the
     /// top left of the matrix down to the bottom right
     /// going cell by cell in each row.
-    fn row_major_iter(&self) -> GridIterator {
+    pub fn row_major_iter(&self) -> GridIterator {
         GridIterator::new(&self)
     }
 
