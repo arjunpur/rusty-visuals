@@ -11,7 +11,7 @@ use std::collections::VecDeque;
 /// TODO: This should be generic so that the Colorer can color other things
 /// and not just grids.
 pub struct ColorerParams<'a> {
-    pub box_pos: Vector2,
+    pub cell_index: &'a grid::CellIndex,
     pub total_num_cells: &'a grid::CellIndex,
 }
 
@@ -34,15 +34,15 @@ impl Colorer for InterpolatedColorer {
     fn color(&self, params: ColorerParams) -> Hsv {
         // Choose the color on the x gradient plane
         let color_for_idx = map_range(
-            params.box_pos.x,
-            0.0,
-            params.total_num_cells.col as f32,
+            params.cell_index.col,
+            0,
+            params.total_num_cells.col,
             0.0,
             1.0,
         );
         // Create the plane for the y axis and then select the
         // x color plane from this gradient.
-        self.get_gradient(params.box_pos.y, params.total_num_cells.row)
+        self.get_gradient(params.cell_index.row, params.total_num_cells.row)
             .get(color_for_idx)
     }
 
@@ -57,8 +57,8 @@ impl InterpolatedColorer {
 
     // TODO: This can be precomputed if we know the number of tiles in the grid when the
     // interpolated colorer is constructed.
-    fn get_gradient(&self, i_y: f32, num_rows: usize) -> Gradient<Hsv> {
-        let y_gradient_start_idx = map_range(i_y, 0.0, num_rows as f32, 0.0, 1.0);
+    fn get_gradient(&self, row: usize, num_rows: usize) -> Gradient<Hsv> {
+        let y_gradient_start_idx = map_range(row, 0, num_rows, 0.0, 1.0);
         let y_gradient_start = self.base_gradient.get(y_gradient_start_idx);
 
         // Keep the difference between the new start and end the same by using the original
@@ -112,19 +112,19 @@ impl Colorer for NoiseColorer {
 
         // Use noise functions to move the hue, saturation and brigthness around
         let hue_delta = self.noise.get([
-            params.box_pos.x as f64,
-            params.box_pos.y as f64,
+            params.cell_index.col as f64,
+            params.cell_index.row as f64,
             current_hue.to_radians() as f64,
         ]) / 100.0;
         let saturation_delta = self.noise.get([
-            params.box_pos.x as f64 + 1000.0,
-            params.box_pos.y as f64 + 1000.0,
+            params.cell_index.col as f64 + 1000.0,
+            params.cell_index.row as f64 + 1000.0,
             current_saturation as f64,
         ]) as f32
             / 100.0;
         let brightness_delta = self.noise.get([
-            params.box_pos.x as f64 + 10000.0,
-            params.box_pos.y as f64 + 10000.0,
+            params.cell_index.col as f64 + 10000.0,
+            params.cell_index.row as f64 + 10000.0,
             current_value as f64,
         ]) as f32
             / 100.0;
@@ -168,7 +168,7 @@ pub struct AlternatingColorer {
 impl Colorer for AlternatingColorer {
     fn color(&self, params: ColorerParams) -> Hsv {
         let position =
-            ((params.box_pos.x + params.box_pos.y).floor() as i32) % self.colors.len() as i32;
+            ((params.cell_index.col + params.cell_index.row) as i32) % self.colors.len() as i32;
         *self.colors.get(position as usize).unwrap()
     }
 

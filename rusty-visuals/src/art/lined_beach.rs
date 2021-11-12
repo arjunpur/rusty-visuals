@@ -63,7 +63,7 @@ fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect, model: &Model) {
             .xy(cell.xy)
             .wh(cell.wh)
             .color(model.colorer.color(colorer::ColorerParams {
-                box_pos: cell.xy,
+                cell_index: &cell.index,
                 total_num_cells,
             }));
     })
