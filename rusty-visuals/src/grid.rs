@@ -33,6 +33,14 @@ impl Cell {
     fn new(wh: Vector2, xy: Vector2, index: CellIndex) -> Self {
         Cell { wh, xy, index }
     }
+
+    pub fn left(&self) -> f32 {
+        self.xy.x - (self.wh.x / 2.0)
+    }
+
+    pub fn bottom(&self) -> f32 {
+        self.xy.y - (self.wh.y / 2.0)
+    }
 }
 
 // A Grid is a collection of Cells in a 2D matrix of
@@ -42,6 +50,8 @@ pub struct Grid {
     cells: Vec<Vec<Cell>>,
 }
 
+// TODO: Compute all the cells on the fly instead of storing
+// everything on the heap.
 impl Grid {
     /// num_cells: (number of rows, number of columns)
     /// NOTE: All the indexing and dimensions follow the matrix

@@ -56,7 +56,7 @@ fn view(app: &App, _: &Model, frame: Frame) {
         draw.polygon()
             .points(jittered_points)
             .color(colorer.color(colorer::ColorerParams {
-                cell_index: &cell.index,
+                cell: &cell,
                 total_num_cells,
             }));
     }

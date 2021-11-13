@@ -1,8 +1,6 @@
 use nannou::prelude::*;
 use rusty_visuals::*;
 
-const GRID_SIDE_LENGTH: f32 = 5.0;
-
 fn main() {
     nannou::app(model).run();
 }
@@ -63,7 +61,7 @@ fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect, model: &Model) {
             .xy(cell.xy)
             .wh(cell.wh)
             .color(model.colorer.color(colorer::ColorerParams {
-                cell_index: &cell.index,
+                cell: &cell,
                 total_num_cells,
             }));
     })

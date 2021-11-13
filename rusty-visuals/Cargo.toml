@@ -11,6 +11,7 @@ chrono = "0.4.0"
 nannou = "0.14"
 rand = "0.7.3"
 itertools = "0.9.0"
+image = "0.23.14"
 
 # Art entry points
 [[bin]]
@@ -33,6 +34,10 @@ path="src/art/cracked_rectangles.rs"
 name="lined_beach"
 path="src/art/lined_beach.rs"
 
+[[bin]]
+name="beach_image_palette"
+path="src/art/beach_image_palette.rs"
+
 # Basic tests and examples
 [[bin]]
 name="P_1_0_01"
@@ -49,6 +54,10 @@ path="src/basics/color/P_1_1_2.rs"
 [[bin]]
 name="color_interpolation"
 path="src/basics/color/color_interpolation.rs"
+
+[[bin]]
+name="color_palettes_from_rules"
+path="src/basics/color/color_palettes_from_rules.rs"
 
 [[bin]]
 name="waves"

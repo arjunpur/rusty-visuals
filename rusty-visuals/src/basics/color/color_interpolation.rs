@@ -1,6 +1,7 @@
 use nannou::color::*;
 use nannou::prelude::*;
-use rusty_visuals::grid::{Colorer, ColorerParams, InterpolatedColorer};
+use rusty_visuals::colorer::{Colorer, ColorerParams, InterpolatedColorer};
+use rusty_visuals::grid::CellIndex;
 use rusty_visuals::*;
 use std::collections::VecDeque;
 
@@ -9,7 +10,7 @@ fn main() {
 }
 
 struct Model {
-    colored_grid: grid::Grid<grid::RotatingColorer>,
+    colorer: Box<dyn Colorer>,
 }
 
 fn model(app: &App) -> Model {
@@ -19,10 +20,12 @@ fn model(app: &App) -> Model {
         .view(view)
         .build()
         .unwrap();
-    let sun_and_sky_colorer = SunAndSky::new(InterpolatedColorer::new((
-        Hsv::new(0.0, 1.0, 1.0),
-        Hsv::new(60.0, 1.0, 1.0),
-    )));
+    let rect = app.window_rect();
+    let sun_and_sky_colorer = SunAndSky::new(
+        InterpolatedColorer::new((Hsv::new(0.0, 1.0, 1.0), Hsv::new(60.0, 1.0, 1.0))),
+        rect,
+    );
+
     let colorers: Vec<Box<dyn Colorer>> = vec![
         Box::new(InterpolatedColorer::new((
             Hsv::new(60.0, 1.0, 1.0),
@@ -31,19 +34,30 @@ fn model(app: &App) -> Model {
         Box::new(sun_and_sky_colorer),
     ];
     let colorers_vec_deque = VecDeque::from(colorers);
-    let colorer = grid::RotatingColorer::new(colorers_vec_deque);
-    let colored_grid = grid::Grid::new(colorer);
-    Model { colored_grid }
+    let colorer = colorer::RotatingColorer::new(colorers_vec_deque);
+
+    Model {
+        colorer: Box::new(colorer),
+    }
 }
 
 fn view(app: &App, m: &Model, frame: Frame) {
     let draw = app.draw();
     let rect = app.window_rect();
-
-    let num_boxes = pt2(200, 200);
-    let _grid = m.colored_grid.draw(&draw, &rect, num_boxes);
-
     draw.background().color(WHITE);
+
+    let num_cells = CellIndex { row: 200, col: 200 };
+    let grid = grid::Grid::new(&rect, &num_cells);
+    for cell in grid.row_major_iter() {
+        draw.rect()
+            .xy(cell.xy)
+            .wh(cell.wh)
+            .color(m.colorer.color(ColorerParams {
+                cell: &cell,
+                total_num_cells: &num_cells,
+            }));
+    }
+
     draw.to_frame(app, &frame).unwrap();
 }
 
@@ -57,7 +71,7 @@ fn event(app: &App, m: &mut Model, event: WindowEvent) {
             println!("Mouse Position: {}, {}", app.mouse.y, app.mouse.x);
         }
         KeyPressed(Key::C) => {
-            m.colored_grid.update();
+            m.colorer.update();
         }
         _other => (),
     }
@@ -65,14 +79,15 @@ fn event(app: &App, m: &mut Model, event: WindowEvent) {
 
 struct SunAndSky {
     interpolated_colorer: InterpolatedColorer,
+    grid_rect: Rect,
 }
 
 impl Colorer for SunAndSky {
     fn color(&self, params: ColorerParams) -> Hsv {
-        let radius = params.grid_rect.w();
+        let radius = self.grid_rect.w();
         // Colors in a circle
-        if (params.current_box_rect.left() + (radius / 2.0)).pow(2.0)
-            + (params.current_box_rect.bottom() + (radius / 2.0)).pow(2.0)
+        if (params.cell.left() + (radius / 2.0)).pow(2.0)
+            + (params.cell.bottom() + (radius / 2.0)).pow(2.0)
             <= radius.pow(2.0)
         {
             return self.interpolated_colorer.color(params);
@@ -86,9 +101,10 @@ impl Colorer for SunAndSky {
 }
 
 impl SunAndSky {
-    pub fn new(interpolated_colorer: InterpolatedColorer) -> Self {
+    pub fn new(interpolated_colorer: InterpolatedColorer, grid_rect: Rect) -> Self {
         SunAndSky {
             interpolated_colorer,
+            grid_rect,
         }
     }
 }
