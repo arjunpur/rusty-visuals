@@ -1,20 +1,19 @@
 use image::io::Reader as ImageReader;
-use image::{DynamicImage, ImageResult, Primitive, RgbaImage};
-use itertools::Itertools;
+use image::{DynamicImage, ImageResult, RgbaImage};
 use nannou::color::*;
 use nannou::prelude::*;
 use rusty_visuals::*;
 use std::path::Path;
 
-const GRID_WIDTH: usize = 200;
-const GRID_HEIGHT: usize = 200;
+const GRID_WIDTH: usize = 80;
+const GRID_HEIGHT: usize = 80;
 
 fn main() {
     nannou::app(model).run();
 }
 
 struct Model {
-    downsampled_color_map: [[Hsv; GRID_WIDTH]; GRID_HEIGHT],
+    downsampled_color_map: [[Hsva; GRID_WIDTH]; GRID_HEIGHT],
 }
 
 fn model(app: &App) -> Model {
@@ -25,25 +24,22 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
 
-    let window_rect = app.window_rect();
+    // let dynamic_image = read_image(Path::new(
+    //     "src/art/resources/aron-yigin-v_DbI6EcAlo-unsplash.jpg",
+    // ))
     let dynamic_image = read_image(Path::new(
         "src/art/resources/lalo-hernandez-Amo081zdJsI-unsplash.jpg",
     ))
     .unwrap()
     .into_rgba8();
-    println!("image width: {}", dynamic_image.width());
-    println!("image height: {}", dynamic_image.height());
     let chunk_width = dynamic_image.width() / GRID_WIDTH as u32;
     let chunk_height = dynamic_image.height() / GRID_HEIGHT as u32;
-    println!("chunk width: {}", chunk_width);
-    println!("image height: {}", chunk_height);
-    let mut downsampled_color_map: [[Hsv; GRID_WIDTH]; GRID_HEIGHT] =
-        [[Hsv::default(); GRID_WIDTH]; GRID_HEIGHT];
+    let mut downsampled_color_map: [[Hsva; GRID_WIDTH]; GRID_HEIGHT] =
+        [[Hsva::default(); GRID_WIDTH]; GRID_HEIGHT];
     for row in 0..downsampled_color_map.len() {
         for col in 0..downsampled_color_map[row].len() {
-            println!("processing row, col: ({}, {})", row, col);
             let averaged_hsv = get_average_rgb(row, col, chunk_width, chunk_height, &dynamic_image);
-            downsampled_color_map[col][row] = averaged_hsv;
+            downsampled_color_map[row][col] = averaged_hsv.saturate(0.7);
         }
     }
     Model {
@@ -57,7 +53,7 @@ fn get_average_rgb(
     chunk_width: u32,
     chunk_height: u32,
     image: &RgbaImage,
-) -> Hsv {
+) -> Hsva {
     let mut sums: [u32; 4] = [0; 4];
     let mut count: u32 = 0;
 
@@ -83,37 +79,46 @@ fn get_average_rgb(
             }
         }
     }
-    println!("found {} number of points to average", count);
-    let color = rgba(
-        (sums[0] / count) as f32,
-        (sums[1] / count) as f32,
-        (sums[2] / count) as f32,
-        (sums[3] / count) as f32,
-    )
-    .into_linear();
-    println!(
-        "color components: ({}, {}, {}, {})",
-        color.red, color.green, color.blue, color.alpha
+    // println!("found {} number of points to average", count);
+    let color = LinSrgba::new(
+        (sums[0] as f32 / count as f32) / 255.0, // The constructor takes in floats as a % of 255 to represent intensity
+        (sums[1] as f32 / count as f32) / 255.0,
+        (sums[2] as f32 / count as f32) / 255.0,
+        (sums[3] as f32 / count as f32) / 255.0,
     );
-    let hsv: Hsv = color.into();
-    hsv
+    let new_color = Hsva::convert_from(color);
+    new_color
 }
 
 fn view(app: &App, m: &Model, frame: Frame) {
     let draw = app.draw();
     let rect = app.window_rect();
 
-    draw.background().color(WHITE);
+    if app.elapsed_frames() != 1 {
+        return;
+    }
+    draw.background().color(BLACK);
     let total_num_cells = grid::CellIndex {
         row: GRID_HEIGHT,
         col: GRID_WIDTH,
     };
     let grid = grid::Grid::new(&rect, &total_num_cells);
     for cell in grid.row_major_iter() {
-        draw.rect()
-            .xy(cell.xy)
-            .wh(cell.wh)
-            .color(m.downsampled_color_map[cell.index.row][cell.index.col]);
+        let color = m.downsampled_color_map[cell.index.row][cell.index.col];
+
+        // EXPERIMENT 1: Randomly change cells on the grid to shifted pixels in the
+        // original grid
+        // EXPERIMENT 2: Use ellipses instead of rectangles to render
+        //
+        // if random_f32() < 0.1 {
+        //     let shifted_color = m.downsampled_color_map
+        //         [(cell.index.row + 3) % m.downsampled_color_map.len()]
+        //         [(cell.index.col + 3) % m.downsampled_color_map[0].len()];
+        //     draw.rect().xy(cell.xy).wh(cell.wh).color(shifted_color);
+        // } else {
+        // draw.ellipse().wh(cell.wh).xy(cell.xy).color(color);
+        draw.rect().xy(cell.xy).wh(cell.wh).color(color);
+        // }
     }
 
     draw.to_frame(app, &frame).unwrap();
