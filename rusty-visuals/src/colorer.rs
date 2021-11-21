@@ -1,6 +1,7 @@
 use nannou::color::*;
 use nannou::noise::*;
 use nannou::prelude::*;
+use rand::{thread_rng, Rng};
 
 use crate::grid;
 
@@ -178,5 +179,52 @@ impl Colorer for AlternatingColorer {
 impl AlternatingColorer {
     pub fn new(colors: Vec<Hsv>) -> Self {
         AlternatingColorer { colors }
+    }
+}
+
+pub struct PaletteColorer {
+    hues: Vec<f32>,
+    saturations: Vec<f32>,
+    values: Vec<f32>,
+}
+
+impl Colorer for PaletteColorer {
+    fn color(&self, _: ColorerParams) -> Hsv {
+        let mut rng = thread_rng();
+        let hue_idx = rng.gen_range(0, self.hues.len());
+        let saturations_idx = rng.gen_range(0, self.saturations.len());
+        let values_idx = rng.gen_range(0, self.values.len());
+        hsv(
+            self.hues[hue_idx],
+            self.saturations[saturations_idx],
+            self.values[values_idx],
+        )
+    }
+
+    fn update(&mut self) {}
+}
+
+impl PaletteColorer {
+    pub fn new(hues: Vec<f32>, saturations: Vec<f32>, values: Vec<f32>) -> Self {
+        if hues.len() == 0 || saturations.len() == 0 || values.len() == 0 {
+            panic!("hues or saturations or values must not be empty");
+        }
+        PaletteColorer {
+            hues,
+            saturations,
+            values,
+        }
+    }
+
+    pub fn color(&self) -> Hsv {
+        let mut rng = thread_rng();
+        let hue_idx = rng.gen_range(0, self.hues.len());
+        let saturations_idx = rng.gen_range(0, self.saturations.len());
+        let values_idx = rng.gen_range(0, self.values.len());
+        hsv(
+            self.hues[hue_idx],
+            self.saturations[saturations_idx],
+            self.values[values_idx],
+        )
     }
 }

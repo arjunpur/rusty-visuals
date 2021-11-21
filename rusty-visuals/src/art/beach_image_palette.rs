@@ -6,7 +6,7 @@ use rusty_visuals::*;
 use std::path::Path;
 
 const GRID_WIDTH: usize = 80;
-const GRID_HEIGHT: usize = 80;
+const GRID_HEIGHT: usize = 148;
 
 fn main() {
     nannou::app(model).run();
@@ -18,7 +18,7 @@ struct Model {
 
 fn model(app: &App) -> Model {
     app.new_window()
-        .size(1200, 1200)
+        .size(652, 1200)
         .event(event)
         .view(view)
         .build()
@@ -39,7 +39,8 @@ fn model(app: &App) -> Model {
     for row in 0..downsampled_color_map.len() {
         for col in 0..downsampled_color_map[row].len() {
             let averaged_hsv = get_average_rgb(row, col, chunk_width, chunk_height, &dynamic_image);
-            downsampled_color_map[row][col] = averaged_hsv.saturate(0.7);
+            downsampled_color_map[row][col] = averaged_hsv.saturate(0.3);
+            // downsampled_color_map[row][col] = averaged_hsv;
         }
     }
     Model {
@@ -110,14 +111,14 @@ fn view(app: &App, m: &Model, frame: Frame) {
         // original grid
         // EXPERIMENT 2: Use ellipses instead of rectangles to render
         //
-        // if random_f32() < 0.1 {
+        // if random_f32() < 0.3 {
         //     let shifted_color = m.downsampled_color_map
         //         [(cell.index.row + 3) % m.downsampled_color_map.len()]
         //         [(cell.index.col + 3) % m.downsampled_color_map[0].len()];
         //     draw.rect().xy(cell.xy).wh(cell.wh).color(shifted_color);
         // } else {
-        // draw.ellipse().wh(cell.wh).xy(cell.xy).color(color);
-        draw.rect().xy(cell.xy).wh(cell.wh).color(color);
+        draw.ellipse().wh(cell.wh).xy(cell.xy).color(color);
+        // draw.rect().xy(cell.xy).wh(cell.wh).color(color);
         // }
     }
 

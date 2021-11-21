@@ -1,7 +1,8 @@
 use nannou::color::*;
 use nannou::prelude::*;
-use rand::{thread_rng, Rng};
-use rusty_visuals::colorer::{AlternatingColorer, Colorer, ColorerParams, RotatingColorer};
+use rusty_visuals::colorer::{
+    AlternatingColorer, Colorer, ColorerParams, PaletteColorer, RotatingColorer,
+};
 use rusty_visuals::file_utils;
 use rusty_visuals::grid::{CellIndex, Grid};
 use std::collections::VecDeque;
@@ -24,8 +25,8 @@ fn model(app: &App) -> Model {
         .unwrap();
     let pastels = PaletteColorer::new(
         (0..360).map(|n| n as f32 / 360.0).collect(),
-        vec![0.4],
-        vec![0.8],
+        vec![0.6],
+        vec![1.0],
     );
     let greens = PaletteColorer::new(
         (90..180).map(|n| n as f32 / 360.0).collect(),
@@ -56,8 +57,46 @@ fn view(app: &App, m: &Model, frame: Frame) {
         return;
     }
 
-    draw.background().color(WHITE);
+    draw.background().color(hsv(0.0, 0.0, 0.1));
 
+    draw_grid_with_transperancy(&draw, &rect, m);
+    // draw_basic_grid(&draw, &rect, m);
+
+    draw.to_frame(app, &frame).unwrap();
+}
+
+fn draw_grid_with_transperancy(draw: &Draw, rect: &Rect, m: &Model) {
+    let num_cells = CellIndex { row: 20, col: 20 };
+    let grid = Grid::new(&rect, &num_cells);
+    for cell in grid.row_major_iter() {
+        if random_f32() < 0.4 {
+            continue;
+        }
+        let color = m.colorer.color(ColorerParams {
+            cell: &cell,
+            total_num_cells: &num_cells,
+        });
+        let transperant_color = hsva(
+            color.hue.to_positive_degrees() / 360.0,
+            color.saturation,
+            color.value,
+            0.7,
+        );
+        let jitter = vec2(
+            (cell.xy.x.sin().abs() + 0.1) * cell.wh.x,
+            (cell.xy.y.cos().abs() + 0.1) * cell.wh.y,
+        );
+        draw.rect()
+            .xy(vec2(
+                10.0 * cell.xy.x.cos() + cell.xy.x,
+                10.0 * cell.xy.y.sin() + cell.xy.y,
+            ))
+            .wh(vec2(cell.wh.x + jitter.x, cell.wh.y + jitter.y))
+            .color(transperant_color);
+    }
+}
+
+fn draw_basic_grid(draw: &Draw, rect: &Rect, m: &Model) {
     let num_cells = CellIndex { row: 30, col: 10 };
     let grid = Grid::new(&rect, &num_cells);
     for cell in grid.row_major_iter() {
@@ -69,8 +108,6 @@ fn view(app: &App, m: &Model, frame: Frame) {
                 total_num_cells: &num_cells,
             }));
     }
-
-    draw.to_frame(app, &frame).unwrap();
 }
 
 fn event(app: &App, m: &mut Model, event: WindowEvent) {
@@ -84,40 +121,5 @@ fn event(app: &App, m: &mut Model, event: WindowEvent) {
             m.to_update_on_frames = app.elapsed_frames() + 1;
         }
         _other => (),
-    }
-}
-
-pub struct PaletteColorer {
-    hues: Vec<f32>,
-    saturations: Vec<f32>,
-    values: Vec<f32>,
-}
-
-impl Colorer for PaletteColorer {
-    fn color(&self, _: ColorerParams) -> Hsv {
-        let mut rng = thread_rng();
-        let hue_idx = rng.gen_range(0, self.hues.len());
-        let saturations_idx = rng.gen_range(0, self.saturations.len());
-        let values_idx = rng.gen_range(0, self.values.len());
-        hsv(
-            self.hues[hue_idx],
-            self.saturations[saturations_idx],
-            self.values[values_idx],
-        )
-    }
-
-    fn update(&mut self) {}
-}
-
-impl PaletteColorer {
-    pub fn new(hues: Vec<f32>, saturations: Vec<f32>, values: Vec<f32>) -> Self {
-        if hues.len() == 0 || saturations.len() == 0 || values.len() == 0 {
-            panic!("hues or saturations or values must not be empty");
-        }
-        PaletteColorer {
-            hues,
-            saturations,
-            values,
-        }
     }
 }

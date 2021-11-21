@@ -61,6 +61,10 @@ name="color_palettes_from_rules"
 path="src/basics/color/color_palettes_from_rules.rs"
 
 [[bin]]
+name="mouse_polygons"
+path="src/basics/shapes/mouse_polygons.rs"
+
+[[bin]]
 name="waves"
 path="src/basics/waves.rs"
 
