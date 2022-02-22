@@ -1,8 +1,7 @@
-
 use nannou::prelude::*;
 use rusty_visuals::mover::Mover;
 
-const GRAVITATIONAL_CONSTANT: app::DrawScalar = 2.0;
+const GRAVITATIONAL_CONSTANT: f32 = 2.0;
 
 fn main() {
     nannou::app(model)
@@ -26,7 +25,7 @@ fn model(app: &App) -> Model {
 fn update(app: &App, m: &mut Model, _update: Update) {
     let distance = m.attractor.position - m.mover.position;
     let vector = distance.normalize();
-    let mag = distance.magnitude();
+    let mag = distance.length();
     let mag_clamped = clamp_min(mag, 0.1);
     let gravity_mag =
         (GRAVITATIONAL_CONSTANT * m.mover.mass * m.attractor.mass) / (mag_clamped * mag_clamped);

@@ -1,18 +1,18 @@
 use nannou::prelude::*;
 
-const FRICTION_CONSTANT: app::DrawScalar = 0.3;
+const FRICTION_CONSTANT: f32 = 0.3;
 
 pub struct Mover {
     pub position: geom::Point2,
-    velocity: Vector2,
+    velocity: Vec2,
     top_speed: f32,
     min_speed: f32,
     // inherent_force is some force that is exerted on the object
     // as a result of the inherent properties of the object.
     // Example: Helium's buoyancy
     pub mass: f32,
-    inherent_force: Vector2,
-    current_force: Vector2,
+    inherent_force: Vec2,
+    current_force: Vec2,
 }
 
 impl Mover {
@@ -37,13 +37,13 @@ impl Mover {
         }
     }
 
-    pub fn new_with_inherent_force(rect: geom::Rect, inherent_force: Vector2) -> Self {
+    pub fn new_with_inherent_force(rect: geom::Rect, inherent_force: Vec2) -> Self {
         let mut mover = Mover::new(rect);
         mover.inherent_force = inherent_force;
         mover
     }
 
-    pub fn apply_force(&mut self, force: Vector2) {
+    pub fn apply_force(&mut self, force: Vec2) {
         self.current_force += force / self.mass;
     }
 

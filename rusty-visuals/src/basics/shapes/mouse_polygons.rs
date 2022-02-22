@@ -1,6 +1,6 @@
 use nannou::color::*;
 use nannou::prelude::*;
-use rusty_visuals::colorer::{Colorer, ColorerParams, PaletteColorer};
+use rusty_visuals::colorer::PaletteColorer;
 use rusty_visuals::*;
 
 fn main() {

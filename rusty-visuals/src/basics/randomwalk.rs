@@ -45,7 +45,7 @@ fn view(app: &App, m: &Model, frame: Frame) {
     draw.background().color(SKYBLUE);
 
     let mut builder = path::Builder::new();
-    builder = builder.move_to(m.positions[0]);
+    builder = builder.begin(m.positions[0]);
 
     for i in 1..m.positions.len() {
         builder = builder.line_to(m.positions[i]);

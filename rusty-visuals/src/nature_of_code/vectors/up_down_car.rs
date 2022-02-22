@@ -6,7 +6,7 @@ use nannou::prelude::*;
 
 use rusty_visuals::mover::Mover;
 
-const ACCELERATION_INCREMENT: app::DrawScalar = 0.01;
+const ACCELERATION_INCREMENT: f32 = 0.01;
 
 // TODO: How do I expose this import?
 pub fn main() {
@@ -14,7 +14,7 @@ pub fn main() {
 }
 
 struct Model {
-    curr_acceleration: Vector2,
+    curr_acceleration: Vec2,
     mover: Mover,
 }
 

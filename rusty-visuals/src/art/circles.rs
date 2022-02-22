@@ -2,7 +2,7 @@ use nannou::color::{self, Hsl};
 use nannou::prelude::*;
 use rusty_visuals::*;
 
-const CIRCLE_SIZE: app::DrawScalar = 10.0;
+const CIRCLE_SIZE: f32 = 10.0;
 const NUM_CIRCLES: usize = 100;
 
 // 50% saturation and lightness

@@ -98,7 +98,7 @@ impl RotatingColorer {
 // TODO: This doesn't actually work
 pub struct NoiseColorer {
     base_color: Hsv,
-    hue_bound: Vector2,
+    hue_bound: Vec2,
     noise: SuperSimplex,
 }
 

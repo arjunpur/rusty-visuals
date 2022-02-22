@@ -95,7 +95,7 @@ fn square_wave(app: &App, frame: Frame) {
 
 fn _moving_circle_view(app: &App, frame: Frame) {
     let rect = app.window_rect().pad(50.0);
-    let total = rect.wh().sum() * 2.0;
+    let total = (rect.wh().x + rect.wh().y) * 2.0;
 
     // Approach: Use the modulus of the time and place it
     // in one of 4 buckets: [left vert, bottom horz, right vert, top horz]

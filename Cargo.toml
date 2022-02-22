@@ -4,3 +4,4 @@ members = [
     "hello-world",
     "rusty-visuals",
 ]
+resolver="2"

@@ -5,7 +5,7 @@ use nannou::prelude::*;
 
 use rusty_visuals::mover::Mover;
 
-const SCALE_ACCELERATION_BY: app::DrawScalar = 0.1;
+const SCALE_ACCELERATION_BY: f32 = 0.1;
 const NUM_MOVERS: usize = 10;
 
 fn main() {

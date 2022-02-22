@@ -95,7 +95,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
     }
 
     if model.clicked {
-        let difference: Vector2<_> = model.circle_radius_start - app.mouse.position();
+        let difference: Vec2 = model.circle_radius_start - app.mouse.position();
         let radius = difference.dot(difference).sqrt();
         let mut points = Vec::new();
         for i in 0..circle_resolution {

@@ -10,7 +10,7 @@ const BACKGROUND_HUE: color::DefaultScalar = 247.0;
 const BACKGROUND_SATURATION: color::DefaultScalar = 0.65;
 const BACKGROUND_LIGHTNESS: color::DefaultScalar = 0.1;
 
-const FRAME_PADDING: app::DrawScalar = 50.0;
+const FRAME_PADDING: f32 = 50.0;
 
 fn main() {
     nannou::app(model).update(update).run();
@@ -60,7 +60,7 @@ fn update(app: &App, m: &mut Model, _update: Update) {
     for _ in 0..1 {
         let last_position = m.first_line_positions.last().unwrap();
         let padded_rect = app.window_rect().pad(30.0);
-        let directions: Vec<Vector2<app::DrawScalar>> =
+        let directions: Vec<Vec2> =
             vec![vec2(5.0, 0.0), vec2(0.0, 5.0), vec2(-5.0, -5.0)];
         m.first_line_positions
             .push(get_next_position_with_directions(
@@ -70,7 +70,7 @@ fn update(app: &App, m: &mut Model, _update: Update) {
             ));
 
         let last_position = m.second_line_positions.last().unwrap();
-        let directions: Vec<Vector2<app::DrawScalar>> =
+        let directions: Vec<Vec2> =
             vec![vec2(-5.0, 0.0), vec2(0.0, 5.0), vec2(5.0, -5.0)];
         m.second_line_positions
             .push(get_next_position_with_directions(
@@ -80,7 +80,7 @@ fn update(app: &App, m: &mut Model, _update: Update) {
             ));
 
         let last_position = m.third_line_positions.last().unwrap();
-        let directions: Vec<Vector2<app::DrawScalar>> =
+        let directions: Vec<Vec2> =
             vec![vec2(5.0, 0.0), vec2(0.0, -5.0), vec2(-5.0, 5.0)];
         m.third_line_positions
             .push(get_next_position_with_directions(
@@ -90,7 +90,7 @@ fn update(app: &App, m: &mut Model, _update: Update) {
             ));
 
         let last_position = m.fourth_line_positions.last().unwrap();
-        let directions: Vec<Vector2<app::DrawScalar>> =
+        let directions: Vec<Vec2> =
             vec![vec2(-5.0, 0.0), vec2(0.0, -5.0), vec2(5.0, 5.0)];
         m.fourth_line_positions
             .push(get_next_position_with_directions(
@@ -101,8 +101,8 @@ fn update(app: &App, m: &mut Model, _update: Update) {
     }
 }
 
-fn get_next_position(rect: Rect<app::DrawScalar>, current_position: &Vector2) -> Vector2 {
-    let directions: Vec<Vector2<app::DrawScalar>> = vec![
+fn get_next_position(rect: Rect, current_position: &Vec2) -> Vec2 {
+    let directions: Vec<Vec2> = vec![
         vec2(0.0, 2.0),
         vec2(2.0, 0.0),
         vec2(0.0, -2.0),
@@ -112,10 +112,10 @@ fn get_next_position(rect: Rect<app::DrawScalar>, current_position: &Vector2) ->
 }
 
 fn get_next_position_with_directions(
-    rect: Rect<app::DrawScalar>,
-    current_position: &Vector2,
-    directions: Vec<Vector2<app::DrawScalar>>,
-) -> Vector2 {
+    rect: Rect,
+    current_position: &Vec2,
+    directions: Vec<Vec2>,
+) -> Vec2 {
     let random_direction = directions.choose(&mut rand::thread_rng()).unwrap();
     let future_position = *current_position + (*random_direction * 5.0);
     let mut adjusted_direction = *random_direction;
@@ -150,9 +150,9 @@ fn view(app: &App, m: &Model, frame: Frame) {
     draw.to_frame(app, &frame).unwrap();
 }
 
-fn draw_polyline(draw: &Draw, points: &Vec<Vector2<app::DrawScalar>>, color: Hsl) {
+fn draw_polyline(draw: &Draw, points: &Vec<Vec2>, color: Hsl) {
     let mut builder = path::Builder::new();
-    builder = builder.move_to(points[0]);
+    builder = builder.begin(points[0]);
 
     for i in 1..points.len() {
         builder = builder.line_to(points[i]);
@@ -169,7 +169,7 @@ fn draw_polyline(draw: &Draw, points: &Vec<Vector2<app::DrawScalar>>, color: Hsl
 
     let offset = pt2(-3.50, -3.50);
     let mut shadow_builder = path::Builder::new();
-    shadow_builder = shadow_builder.move_to(points[0] + offset);
+    shadow_builder = shadow_builder.begin(points[0] + offset);
 
     for i in 1..points.len() {
         shadow_builder = shadow_builder.line_to(points[i] + offset);

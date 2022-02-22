@@ -16,7 +16,7 @@ struct Model {
 }
 
 impl Model {
-    fn add(&self) -> Vector2 {
+    fn add(&self) -> Vec2 {
         self.v1 + self.v2
     }
 

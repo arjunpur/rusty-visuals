@@ -1,10 +1,7 @@
-use nannou::app::DrawScalar;
-use nannou::geom::{Point2, Vector2};
 use nannou::noise::*;
 use nannou::prelude::*;
 use rusty_visuals::mover::Mover;
 
-const GRAVITY: Vector2 = Vector2 { x: 0.0, y: -1.5 };
 
 fn main() {
     nannou::app(model)
@@ -24,8 +21,9 @@ fn model(app: &App) -> Model {
 }
 
 fn update(app: &App, m: &mut Model, _update: Update) {
+    let gravity = vec2(0.0, -1.5);
     let wind = create_wind(app.time, m.mover.position);
-    m.mover.apply_force(GRAVITY);
+    m.mover.apply_force(gravity);
     m.mover.apply_force(wind);
     m.mover.apply_friction();
     m.mover.update(app.window_rect());
@@ -38,7 +36,7 @@ fn view(app: &App, m: &Model, frame: Frame) {
     draw.to_frame(app, &frame).unwrap();
 }
 
-fn create_wind(time: DrawScalar, xy: Point2) -> Vector2 {
+fn create_wind(time: f32, xy: Point2) -> Vec2 {
     const DIRECTION_MAGNITUDE_OFFSET: f32 = 5000.0;
     let noise = Perlin::new();
     let direction = if noise.get([xy.x as f64, xy.y as f64, time as f64]) < 0.5 {

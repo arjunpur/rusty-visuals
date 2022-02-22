@@ -1,5 +1,4 @@
-use nannou::app::DrawScalar;
-use nannou::geom::{Rect, Vector2};
+use nannou::geom::{Rect, Vec2};
 use nannou::noise::*;
 use nannou::prelude::*;
 
@@ -20,8 +19,8 @@ const ANGLE_MAGNITUDE_NOISE_OFFSET: f64 = 40000.0;
 const MAGNITUDE_SCALE: f32 = 2.0;
 
 pub struct ForceField {
-    rect: Rect<DrawScalar>,
-    force_field: Vec<Vec<Vector2>>,
+    rect: Rect<f32>,
+    force_field: Vec<Vec<Vec2>>,
 }
 
 // ForceField is an abstraction coupled with Nannou's Draw API. It allows
@@ -31,7 +30,7 @@ pub struct ForceField {
 // in a rectangle from `get_acceleration_from_position`. Callers may update
 // objects with this acceleration to give the perception of smoothed motion.
 impl ForceField {
-    pub fn new(rect: Rect<DrawScalar>, time: DrawScalar) -> ForceField {
+    pub fn new(rect: Rect<f32>, time: f32) -> ForceField {
         // Calculate the dimensions of the force field
         let num_forces = (
             (rect.w() / RESOLUTION).ceil() as usize,
@@ -44,14 +43,14 @@ impl ForceField {
 
     // To be called by a nannou `update` function. Simply updates the vectors
     // in the force field by the next unit in time.
-    pub fn update(&mut self, rect: Rect<DrawScalar>, time: DrawScalar) {
+    pub fn update(&mut self, rect: Rect<f32>, time: f32) {
         self.rect = rect;
         populate_force_field(rect, time, &mut self.force_field)
     }
 
     // Snaps a position to a given vector on the force field and returns the
     // acceleration represented by that force field.
-    pub fn get_acceleration_from_position(&self, position: Vector2) -> Vector2 {
+    pub fn get_acceleration_from_position(&self, position: Vec2) -> Vec2 {
         let scaled_mover_position = vec2(
             // We use clamp to ensure we don't return out of bounds indicies
             clamp(
@@ -61,29 +60,29 @@ impl ForceField {
                     position.x,
                     0.0,
                     self.rect.w(),
-                    0,
-                    self.force_field[0].len() as i32,
+                    0.0,
+                    (self.force_field[0].len() as i32) as f32,
                 ),
-                0,
-                self.force_field[0].len() as i32,
+                0.0,
+                (self.force_field[0].len() as i32) as f32,
             ),
             clamp(
                 map_range(
                     position.y,
                     0.0,
                     self.rect.h(),
-                    0,
-                    self.force_field.len() as i32,
+                    0.0,
+                    (self.force_field.len() as i32) as f32,
                 ),
-                0,
-                self.force_field.len() as i32,
+                0.0,
+                (self.force_field.len() as i32) as f32,
             ),
         );
         self.force_field[scaled_mover_position.y as usize]
             [scaled_mover_position.x as usize]
     }
 
-    pub fn display(&self, draw: &Draw, time: DrawScalar) {
+    pub fn display(&self, draw: &Draw, time: f32) {
         let bottom_left = self.rect.bottom_left();
         let noise = SuperSimplex::new();
         for i in 0..self.force_field.len() {
@@ -110,9 +109,9 @@ impl ForceField {
 // field with a noise randomized step. We use a bunch of constants (ex. ANGLE_SMOOTHER) to scale down the inputs so that noise
 // returns closer values, giving a more smoothed out visual experience.
 fn populate_force_field(
-    rect: Rect<DrawScalar>,
-    time: DrawScalar,
-    force_field: &mut Vec<Vec<Vector2>>,
+    rect: Rect<f32>,
+    time: f32,
+    force_field: &mut Vec<Vec<Vec2>>,
 ) {
     let bottom_left = rect.bottom_left();
     for i in 0..force_field.len() {
@@ -126,7 +125,7 @@ fn populate_force_field(
     }
 }
 
-fn create_force_from_noise(time: DrawScalar, x: f32, y: f32) -> Vector2 {
+fn create_force_from_noise(time: f32, x: f32, y: f32) -> Vec2 {
     let noise = Perlin::new();
     let angle = noise.get([
         (x / ANGLE_SMOOTHER) as f64,
@@ -139,5 +138,5 @@ fn create_force_from_noise(time: DrawScalar, x: f32, y: f32) -> Vector2 {
         (y / MAGNITUDE_SMOOTHER) as f64 + ANGLE_MAGNITUDE_NOISE_OFFSET,
         time as f64 / TIME_SMOOTHER,
     ]) as f32;
-    geom::Vector2::from_angle(angle) * magnitude * MAGNITUDE_SCALE
+    Vec2::new(angle.cos(), angle.sin()) * magnitude * MAGNITUDE_SCALE
 }

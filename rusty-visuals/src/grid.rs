@@ -18,8 +18,11 @@ pub struct CellIndex {
     pub col: usize,
 }
 pub struct Cell {
-    pub xy: Vector2,
-    pub wh: Vector2,
+    // Note that the x, y coordinates here are the center coordinates of
+    // the cell. Use the `left()` or `bottom()` methods to get the appropriate
+    // coordinates.
+    pub xy: Vec2,
+    pub wh: Vec2,
 
     // index is the (i,j) row, column index that this cell
     // represents.
@@ -30,7 +33,7 @@ pub struct Cell {
 /// that represents a single block on the Grid.
 impl Cell {
     // Width / Height; Coordinates; Index in 2D matix
-    fn new(wh: Vector2, xy: Vector2, index: CellIndex) -> Self {
+    fn new(wh: Vec2, xy: Vec2, index: CellIndex) -> Self {
         Cell { wh, xy, index }
     }
 
@@ -40,6 +43,14 @@ impl Cell {
 
     pub fn bottom(&self) -> f32 {
         self.xy.y - (self.wh.y / 2.0)
+    }
+
+    pub fn top(&self) -> f32 {
+        self.xy.y + (self.wh.y / 2.0)
+    }
+
+    pub fn right(&self) -> f32 {
+        self.xy.x + (self.wh.x / 2.0)
     }
 }
 
@@ -117,11 +128,11 @@ impl<'a> GridIterator<'a> {
 impl<'a> Iterator for GridIterator<'a> {
     type Item = &'a Cell;
     fn next(&mut self) -> Option<Self::Item> {
-        // We're at or past (should never go past) the last row
-        // of the grid.
         let mut col_idx = self.curr.0;
         let mut row_idx = self.curr.1;
 
+        // We're at or past (should never go past) the last row
+        // of the grid.
         if row_idx >= self.grid.cells.len() {
             return None;
         }
@@ -258,5 +269,22 @@ mod tests {
         assert_eq!(cell.index.col, 4);
         assert_eq!(cell.xy.x, 4.0);
         assert_eq!(cell.xy.y, -45.0);
+    }
+
+    #[test]
+    fn grid_edge_coordinates_are_correct_using_practical_values() {
+        let grid_cells = CellIndex { row: 30, col: 30 };
+        let rect = geom::Rect::from_x_y_w_h(0.0, 0.0, 1500.0, 1500.0);
+        let grid = Grid::new(&rect, &grid_cells);
+
+        let cell_option = grid.get_cell_by_index(0, 0);
+        assert!(cell_option.is_some(), "this cell should exist");
+        let cell = cell_option.unwrap();
+        assert_eq!(cell.wh.x, 50.0);
+        assert_eq!(cell.wh.y, 50.0);
+        assert_eq!(cell.index.row, 0);
+        assert_eq!(cell.index.col, 0);
+        assert_eq!(cell.xy.x - cell.wh.x / 2.0, rect.left(), "cell's left coordinate matches bounding rectangle left");
+        assert_eq!(cell.xy.y + cell.wh.y / 2.0, rect.top(), "cell's top coordinate matches bounding rectangle top");
     }
 }
