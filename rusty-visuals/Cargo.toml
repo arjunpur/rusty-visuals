@@ -14,6 +14,8 @@ itertools = "0.9.0"
 image = "0.23.14"
 palette = "0.6.0"
 rand_chacha = "0.3.1"
+line_intersection = "0.4.0"
+geo = "0.4.0"
 
 # Art entry points
 [[bin]]
@@ -68,6 +70,10 @@ path="src/basics/shapes/mouse_polygons.rs"
 [[bin]]
 name="grid_alignment"
 path="src/basics/shapes/grid_alignment.rs"
+
+[[bin]]
+name="grid_complex_shapes"
+path="src/basics/shapes/grid_complex_shapes.rs"
 
 [[bin]]
 name="waves"

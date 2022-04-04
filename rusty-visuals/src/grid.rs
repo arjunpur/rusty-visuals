@@ -11,8 +11,7 @@
 ///
 use nannou::prelude::*;
 
-#[derive(Debug, Default, Clone)]
-
+#[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct CellIndex {
     pub row: usize,
     pub col: usize,
@@ -59,6 +58,7 @@ impl Cell {
 // of vectors of cells.
 pub struct Grid {
     cells: Vec<Vec<Cell>>,
+    rect: Rect,
 }
 
 // TODO: Compute all the cells on the fly instead of storing
@@ -67,7 +67,7 @@ impl Grid {
     /// num_cells: (number of rows, number of columns)
     /// NOTE: All the indexing and dimensions follow the matrix
     /// indexing scheme (i.e (rows, columns)).
-    pub fn new(bounding_rect: &Rect, num_cells: &CellIndex) -> Self {
+    pub fn new(bounding_rect: Rect, num_cells: &CellIndex) -> Self {
         let cell_height = bounding_rect.h() / num_cells.row as f32;
         let cell_width = bounding_rect.w() / num_cells.col as f32;
 
@@ -97,20 +97,34 @@ impl Grid {
                     .collect()
             })
             .collect(); // Collect on both levels of vector
-        Grid { cells }
+        Grid {
+            cells,
+            rect: bounding_rect,
+        }
     }
 
     /// The row major iterator will traverse from the
     /// top left of the matrix down to the bottom right
     /// going cell by cell in each row.
     pub fn row_major_iter(&self) -> GridIterator {
-        GridIterator::new(&self)
+        GridIterator::new(self)
     }
 
     fn get_cell_by_index(&self, row: usize, col: usize) -> Option<&Cell> {
         let row = self.cells.get(row);
-        let cell = row.map(|r| r.get(col)).flatten();
-        cell
+        row.map(|r| r.get(col)).flatten()
+    }
+
+    pub fn diagonal_length(&self) -> f32 {
+        self.rect.top_left().distance(self.rect.bottom_right())
+    }
+
+    pub fn wh(&self) -> Vec2 {
+        self.rect.wh()
+    }
+
+    pub fn xy(&self) -> Vec2 {
+        self.rect.xy()
     }
 }
 
@@ -284,7 +298,15 @@ mod tests {
         assert_eq!(cell.wh.y, 50.0);
         assert_eq!(cell.index.row, 0);
         assert_eq!(cell.index.col, 0);
-        assert_eq!(cell.xy.x - cell.wh.x / 2.0, rect.left(), "cell's left coordinate matches bounding rectangle left");
-        assert_eq!(cell.xy.y + cell.wh.y / 2.0, rect.top(), "cell's top coordinate matches bounding rectangle top");
+        assert_eq!(
+            cell.xy.x - cell.wh.x / 2.0,
+            rect.left(),
+            "cell's left coordinate matches bounding rectangle left"
+        );
+        assert_eq!(
+            cell.xy.y + cell.wh.y / 2.0,
+            rect.top(),
+            "cell's top coordinate matches bounding rectangle top"
+        );
     }
 }

@@ -6,7 +6,7 @@ fn main() {
 }
 
 struct Model {
-    colorer: Box<dyn colorer::Colorer>,
+    colorer: Box<dyn colorer::GridColorer>,
 }
 
 struct Heights {
@@ -60,7 +60,7 @@ fn draw_sand(draw: &Draw, heights: &Heights, rect: Rect, model: &Model) {
         draw.rect()
             .xy(cell.xy)
             .wh(cell.wh)
-            .color(model.colorer.color(colorer::ColorerParams {
+            .color(model.colorer.color(colorer::GridParams {
                 cell: &cell,
                 total_num_cells,
             }));

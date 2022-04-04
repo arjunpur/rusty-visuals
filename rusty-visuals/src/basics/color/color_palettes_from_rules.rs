@@ -1,7 +1,7 @@
 use nannou::color::*;
 use nannou::prelude::*;
 use rusty_visuals::colorer::{
-    AlternatingColorer, Colorer, ColorerParams, PaletteColorer, RotatingColorer,
+    AlternatingColorer, GridColorer, GridParams, PaletteColorer, RotatingColorer,
 };
 use rusty_visuals::file_utils;
 use rusty_visuals::grid::{CellIndex, Grid};
@@ -12,7 +12,7 @@ fn main() {
 }
 
 struct Model {
-    colorer: Box<dyn Colorer>,
+    colorer: Box<dyn GridColorer>,
     to_update_on_frames: u64,
 }
 
@@ -35,7 +35,7 @@ fn model(app: &App) -> Model {
     );
     let alternating_colorer_2 =
         AlternatingColorer::new(vec![hsv(0.2, 0.5, 1.0), hsv(0.7, 0.5, 1.0)]);
-    let colorers: Vec<Box<dyn Colorer>> = vec![
+    let colorers: Vec<Box<dyn GridColorer>> = vec![
         Box::new(pastels),
         Box::new(alternating_colorer_2),
         Box::new(greens),
@@ -72,7 +72,7 @@ fn draw_grid_with_transperancy(draw: &Draw, rect: &Rect, m: &Model) {
         if random_f32() < 0.4 {
             continue;
         }
-        let color = m.colorer.color(ColorerParams {
+        let color = m.colorer.color(GridParams {
             cell: &cell,
             total_num_cells: &num_cells,
         });
@@ -103,7 +103,7 @@ fn draw_basic_grid(draw: &Draw, rect: &Rect, m: &Model) {
         draw.rect()
             .xy(cell.xy)
             .wh(cell.wh)
-            .color(m.colorer.color(ColorerParams {
+            .color(m.colorer.color(GridParams {
                 cell: &cell,
                 total_num_cells: &num_cells,
             }));

@@ -4,6 +4,7 @@ const FRICTION_CONSTANT: f32 = 0.3;
 
 pub struct Mover {
     pub position: geom::Point2,
+    rect: geom::Rect,
     velocity: Vec2,
     top_speed: f32,
     min_speed: f32,
@@ -28,6 +29,7 @@ impl Mover {
         let current_force = vec2(0.0, 0.0);
         Mover {
             position,
+            rect,
             velocity,
             top_speed,
             min_speed,
@@ -44,16 +46,15 @@ impl Mover {
     }
 
     pub fn apply_force(&mut self, force: Vec2) {
-        self.current_force += force / self.mass;
+        self.current_force += force;
     }
 
     pub fn apply_friction(&mut self) {
-        let opposite_velocity = self.velocity * -1.0;
-        let friction = opposite_velocity.normalize();
-        self.apply_force(friction * FRICTION_CONSTANT);
+        let opposite_force = self.current_force * -1.0 * FRICTION_CONSTANT;
+        self.apply_force(opposite_force);
     }
 
-    pub fn update(&mut self, rect: geom::Rect) {
+    pub fn update(&mut self) {
         self.current_force += self.inherent_force;
         self.velocity += self.current_force;
         self.velocity = vec2(
@@ -61,22 +62,19 @@ impl Mover {
             self.velocity.y.min(self.top_speed).max(self.min_speed),
         );
         self.position += self.velocity;
-        self.check_edges(rect);
-        self.current_force = self.inherent_force;
+        self.apply_friction(); 
+        self.check_edges(self.rect);
     }
 
     fn check_edges(&mut self, rect: geom::Rect) {
         if self.position.x > rect.right() {
-            self.velocity *= -1.0;
             self.position.x = rect.right();
         } else if self.position.x < rect.left() {
-            self.velocity *= -1.0;
             self.position.x = rect.left();
-        } else if self.position.y > rect.top() {
-            self.velocity *= -1.0;
+        }
+        if self.position.y > rect.top() {
             self.position.y = rect.top();
         } else if self.position.y < rect.bottom() {
-            self.velocity *= -1.0;
             self.position.y = rect.bottom();
         }
     }

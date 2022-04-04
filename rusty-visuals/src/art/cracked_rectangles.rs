@@ -34,7 +34,7 @@ fn view(app: &App, _: &Model, frame: Frame) {
     }
     draw.background().color(WHITE);
 
-    use colorer::Colorer;
+    use colorer::GridColorer;
     let colorer = colorer::AlternatingColorer::new(vec![
         hsv(0.53, 1.0, 0.64),
         hsv(0.275, 1.0, 0.64),
@@ -55,7 +55,7 @@ fn view(app: &App, _: &Model, frame: Frame) {
         // draw jittered rectangles and color with alternate colors
         draw.polygon()
             .points(jittered_points)
-            .color(colorer.color(colorer::ColorerParams {
+            .color(colorer.color(colorer::GridParams {
                 cell: &cell,
                 total_num_cells,
             }));

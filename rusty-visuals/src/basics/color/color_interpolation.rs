@@ -1,6 +1,6 @@
 use nannou::color::*;
 use nannou::prelude::*;
-use rusty_visuals::colorer::{Colorer, ColorerParams, InterpolatedColorer};
+use rusty_visuals::colorer::{GridColorer, GridParams, InterpolatedColorer};
 use rusty_visuals::grid::CellIndex;
 use rusty_visuals::*;
 use std::collections::VecDeque;
@@ -10,7 +10,7 @@ fn main() {
 }
 
 struct Model {
-    colorer: Box<dyn Colorer>,
+    colorer: Box<dyn GridColorer>,
 }
 
 fn model(app: &App) -> Model {
@@ -26,7 +26,7 @@ fn model(app: &App) -> Model {
         rect,
     );
 
-    let colorers: Vec<Box<dyn Colorer>> = vec![
+    let colorers: Vec<Box<dyn GridColorer>> = vec![
         Box::new(InterpolatedColorer::new((
             Hsv::new(60.0, 1.0, 1.0),
             Hsv::new(180.0, 1.0, 1.0),
@@ -52,7 +52,7 @@ fn view(app: &App, m: &Model, frame: Frame) {
         draw.rect()
             .xy(cell.xy)
             .wh(cell.wh)
-            .color(m.colorer.color(ColorerParams {
+            .color(m.colorer.color(GridParams {
                 cell: &cell,
                 total_num_cells: &num_cells,
             }));
@@ -82,8 +82,8 @@ struct SunAndSky {
     grid_rect: Rect,
 }
 
-impl Colorer for SunAndSky {
-    fn color(&self, params: ColorerParams) -> Hsv {
+impl GridColorer for SunAndSky {
+    fn color(&self, params: GridParams) -> Hsv {
         let radius = self.grid_rect.w();
         // Colors in a circle
         if (params.cell.left() + (radius / 2.0)).pow(2.0)
