@@ -76,6 +76,10 @@ name="grid_complex_shapes"
 path="src/basics/shapes/grid_complex_shapes.rs"
 
 [[bin]]
+name="shapes_from_agents"
+path="src/basics/shapes/shapes_from_agents.rs"
+
+[[bin]]
 name="waves"
 path="src/basics/waves.rs"
 
